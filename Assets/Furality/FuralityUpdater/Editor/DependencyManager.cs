@@ -19,11 +19,22 @@ namespace Furality.FuralityUpdater.Editor
         
         public static async void UpgradeOrInstall(Package packageToInstall, IPackageDataSource dataSource)
         {
-            // Step 1, we need to check to see if this is a UPM package or a Furality package.
-            // If it's a UPM package, we need to install it using the UPM API.
+            // Step 1, we need to check to see if this is a VCC package or a Furality package.
+            // If it's a UPM package, we need to install it using the VCC API.
             if (!(packageToInstall is FuralityPackage))
             {
-                Client.Add(packageToInstall.Id);
+                // Check to see if it's already installed. If it is, return.
+                if (await ProjectManifest.IsDependencyInstalled(packageToInstall.Id, packageToInstall.Version)) return;
+                
+                // It's not installed (or at least the version we want isn't. We need to install it.
+                var success = await ProjectPackage.AddPackage(packageToInstall.Id, packageToInstall.Version);
+                if (!success)
+                {
+                    throw new Exception(
+                        $"Failed to install package {packageToInstall.Id} {packageToInstall.Version}");
+                }
+    
+                // We got this far, meaning we successfully installed the package. We can return.
                 return;
             }
             

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -43,7 +44,25 @@ namespace Furality.FuralityUpdater.Editor
                 projectPath = projectPath
             };
             
-            return await VccComms.Request<ProjectManifestResponse>("projects/manifest", "POST", manifestRequest);
+            var resp =  await VccComms.Request<ProjectManifestResponse>("projects/manifest", "POST", manifestRequest);
+            
+            if (!resp.success)
+            {
+                Debug.LogError($"Failed to get project manifest: {resp.data}");
+                return null;
+            }
+            
+            return resp.data;
+        }
+
+        public static async Task<bool> IsDependencyInstalled(string id, Version version)
+        {
+            var manifest = await GetProjectManifest(Application.dataPath);
+            if (manifest == null)
+                return false;
+
+            
+            return manifest.dependencies.Any(d => d.Id == id && d.Version == version);
         }
     }
 }

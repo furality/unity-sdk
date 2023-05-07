@@ -7,15 +7,15 @@ namespace Furality.FuralityUpdater.Editor
 {
     public static class VccComms
     {
-        private class VccResponse<T>
+        public class VccResponse<T>
         {
-            public bool success;
-            public T data;
+            public bool success { get; set; }
+            public T data { get; set; }
         }
 
         private const string VccUrl = "http://localhost:5477/api/";
 
-        public static async Task<T> Request<T>(string endpoint, string method, dynamic body = null)
+        public static async Task<VccResponse<T>> Request<T>(string endpoint, string method, dynamic body = null)
         {
             // Send an HTTP request to the VCC
             using (HttpClient client = new HttpClient())
@@ -32,10 +32,8 @@ namespace Furality.FuralityUpdater.Editor
                 
                 string responseBody = await response.Content.ReadAsStringAsync();
 
-                // Deserialize the response content into VccResponse<T>
-                VccResponse<T> vccResponse = JsonConvert.DeserializeObject<VccResponse<T>>(responseBody);
-
-                return vccResponse.data;
+                // Deserialize the response content into VccResponse<T> and return
+                return JsonConvert.DeserializeObject<VccResponse<T>>(responseBody);
             }
         }
     }
