@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Furality.Editor.AssetHandling;
 using UnityEditor.PackageManager;
+using UnityEditorInternal;
 
 namespace Furality.FuralityUpdater.Editor
 {
@@ -16,7 +17,7 @@ namespace Furality.FuralityUpdater.Editor
             return true;
         }
         
-        public static void UpgradeOrInstall(Package packageToInstall, IPackageDataSource dataSource)
+        public static async void UpgradeOrInstall(Package packageToInstall, IPackageDataSource dataSource)
         {
             // Step 1, we need to check to see if this is a UPM package or a Furality package.
             // If it's a UPM package, we need to install it using the UPM API.
