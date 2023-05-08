@@ -68,7 +68,7 @@ namespace Furality.Editor
                         // Render the download button
                         if (GUILayout.Button("Download"))
                         {
-                            DependencyManager.UpgradeOrInstall(download, new TestDataSource());
+                            DependencyManager.UpgradeOrInstall(download, true, new TestDataSource());
                         }
                     }
                     GUILayout.EndVertical();

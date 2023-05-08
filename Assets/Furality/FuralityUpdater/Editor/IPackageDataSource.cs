@@ -9,5 +9,9 @@ namespace Furality.FuralityUpdater.Editor
         Package GetPackage(string id);  // Returns a package
         
         IEnumerable<FuralityPackage> GetPackages();  // Returns all packages
+        
+        FuralityPackage GetSdkPackage();  // Returns the SDK package
+
+        FuralityPackage GetUpdaterPackage();
     }
 }
