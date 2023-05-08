@@ -59,8 +59,8 @@ namespace Furality.Editor
                             GUILayout.EndVertical();
 
                             GUILayout.FlexibleSpace();
-                            GUILayout.Box(download.Image, GUILayout.Width(Screen.width / 3),
-                                GUILayout.Height(Screen.width / 3 * (9f / 16f)));
+                            //GUILayout.Box(download.Image, GUILayout.Width(Screen.width / 3),
+                            //    GUILayout.Height(Screen.width / 3 * (9f / 16f)));
                             GUILayout.FlexibleSpace();
                         }
                         GUILayout.EndHorizontal();

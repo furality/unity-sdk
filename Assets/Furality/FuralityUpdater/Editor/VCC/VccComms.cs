@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using UnityEngine;
 
 namespace Furality.FuralityUpdater.Editor
 {
@@ -26,14 +26,14 @@ namespace Furality.FuralityUpdater.Editor
 
                 var request = new HttpRequestMessage(new HttpMethod(method), endpoint);
                 if (body != null)
-                    request.Content = new StringContent(JsonConvert.SerializeObject(body), System.Text.Encoding.UTF8, "application/json");
+                    request.Content = new StringContent(JsonUtility.ToJson(body), System.Text.Encoding.UTF8, "application/json");
                 
                 var response = await client.SendAsync(request);
                 
                 string responseBody = await response.Content.ReadAsStringAsync();
 
                 // Deserialize the response content into VccResponse<T> and return
-                return JsonConvert.DeserializeObject<VccResponse<T>>(responseBody);
+                return JsonUtility.FromJson<VccResponse<T>>(responseBody);
             }
         }
     }

@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Furality.Editor.AssetHandling;
 
 namespace Furality.FuralityUpdater.Editor
@@ -9,9 +8,5 @@ namespace Furality.FuralityUpdater.Editor
         Package GetPackage(string id);  // Returns a package
         
         IEnumerable<FuralityPackage> GetPackages();  // Returns all packages
-        
-        FuralityPackage GetSdkPackage();  // Returns the SDK package
-
-        FuralityPackage GetUpdaterPackage();
     }
 }
