@@ -38,17 +38,20 @@ namespace Furality.Editor.Pages
 
 
             if (_currentPage == null)
-            {
                 _currentPage = _categories[0];
-            }
 
             GUILayout.BeginHorizontal();
             foreach (var privilegeCategory in _categories)
             {
+                bool isSelected = privilegeCategory == _currentPage;
+                if (isSelected)
+                    GUI.color = new Color(1.2f, 1.2f, 1.2f);
+                
                 if (GUILayout.Button(privilegeCategory.CategoryName))
-                {
                     _currentPage = privilegeCategory;
-                }
+                
+                if (isSelected)
+                    GUI.color = Color.white;
             }
             GUILayout.EndHorizontal();
             

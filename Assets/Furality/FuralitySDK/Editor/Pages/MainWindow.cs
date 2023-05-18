@@ -11,9 +11,14 @@ namespace Furality.Editor.Pages
     public class MainWindow : EditorWindow
     {
         private Queue<Action> _dispatchQueue = new Queue<Action>();
-        private Dictionary<string, IMenuPage> _pages = new Dictionary<string, IMenuPage>();
+        private Dictionary<string, IMenuPage> _pages = new Dictionary<string, IMenuPage>
+        {
+            {"Downloads", new DownloadsPage()},
+            {"Tools", new ToolsPage()},
+            {"Settings", new SettingsPage()}
+        };
         
-        private string _currentPage;
+        private IMenuPage _currentPage;
         private Texture2D _logo;
 
         [MenuItem("Window/Furality/Show SDK")]
@@ -27,20 +32,9 @@ namespace Furality.Editor.Pages
 
         private void OnEnable()
         {
-            _pages = new Dictionary<string, IMenuPage>();
-            foreach (var type in AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes()))
-            {
-                // Check if it implements the IMenuPage interface
-                if (type.GetInterfaces().Contains(typeof(IMenuPage)))
-                { 
-                    // Create an instance of the page
-                    _pages.Add(type.Name, Activator.CreateInstance(type) as IMenuPage);
-                }
-            }
-            
             if (_currentPage == null)
             {
-                _currentPage = _pages.Keys.First();
+                _currentPage = _pages.First().Value;
             }
         
             _logo = Resources.Load<Texture2D>("furality-logo");
@@ -66,21 +60,15 @@ namespace Furality.Editor.Pages
             EditorGUILayout.BeginHorizontal();
             foreach (var page in _pages)
             {
-                bool isSelected = (page.Key == _currentPage);
+                bool isSelected = page.Value == _currentPage;
                 if (isSelected)
-                {
-                    GUI.color = new Color(1.2f, 1.2f, 1.2f);
-                }
-
+                    GUI.color = new Color(1.2f, 1.2f, 1.2f); 
+                    
                 if (GUILayout.Button(page.Key.Replace("Page", ""), GUILayout.ExpandWidth(true)))
-                {
-                    _currentPage = page.Key;
-                }
+                    _currentPage = page.Value;
 
                 if (isSelected)
-                {
                     GUI.color = Color.white;
-                }
             }
             EditorGUILayout.EndHorizontal();
 
@@ -88,7 +76,7 @@ namespace Furality.Editor.Pages
             if (_currentPage != null)
             {
                 EditorGUILayout.Space(10);
-                _pages[_currentPage].Draw();
+                _currentPage.Draw();
             }
         }
         

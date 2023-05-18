@@ -1,5 +1,6 @@
 ﻿using System;
 using Furality.Editor.Pages;
+using Furality.FuralityUpdater.Editor;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -33,6 +34,7 @@ namespace Furality.Editor.Auth
         private static readonly string AuthURL = $"https://boop.fynn.ai/oidc/auth?response_type=code&client_id={ClientID}&scope=openid+profile&redirect_uri=http://localhost:8080/callback";
 
         [CanBeNull] public static UserData CurrentUser { get; private set; }
+        [CanBeNull] public static FoxApi Api { get; private set; }
         
         private static HttpCallbackManager CallbackManager { get; set; }
         
@@ -73,6 +75,7 @@ namespace Furality.Editor.Auth
             
             // Parse the user data from the jwt
             CurrentUser = ParseUserDataFromJwt(response.id_token);
+            Api = new FoxApi(response.access_token);
         }
 
         private static UserData ParseUserDataFromJwt(string jwt)
