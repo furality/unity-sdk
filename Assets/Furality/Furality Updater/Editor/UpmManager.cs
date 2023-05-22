@@ -5,15 +5,13 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Furality.FuralityUpdater.Editor;
-using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.Networking;
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
-namespace Furality.FuralityUpdater.Bootstrap
+namespace Furality.Furality_Updater.Editor
 {
-    [InitializeOnLoad]
     public static class UpmManager
     {
         private class ScopedRegistry {
@@ -28,32 +26,8 @@ namespace Furality.FuralityUpdater.Bootstrap
 
             public List<ScopedRegistry> scopedRegistries = new List<ScopedRegistry>();
         }
-
-        [Serializable]
-        public class UpdateMetadata
-        {
-            public string name;
-            public string version;
-            public string downloadUrl;
-        }
-
-        [Serializable]
-        public class UpdateManifest
-        {
-            public int manifestVersion;
-            public UpdateMetadata[] packages;
-        }
-
-        static UpmManager()
-        {
-            if (!Application.isPlaying)
-                Task.Run(() =>
-                {
-                    AsyncHelper.EnqueueOnMainThread(UpdaterMain);
-                });
-        }
-
-        private static async Task<PackageInfo> GetInstalledPackageMeta(string id)
+        
+        public static async Task<PackageInfo> GetInstalledPackageMeta(string id)
         {
             var installed = await AsyncHelper.MainThread(() =>
             {
@@ -63,76 +37,6 @@ namespace Furality.FuralityUpdater.Bootstrap
                 return req.Result;
             });
             return installed.FirstOrDefault(p => p.name == "org.furality.updater");
-        }
-
-        private static async void UpdaterMain()
-        {
-            var name = Assembly.GetExecutingAssembly().GetName().Name;
-            bool isBootstrapping = name != "FuralityUpdater";
-            if (isBootstrapping)
-                Debug.Log("Bootstrapping Furality Updater");
-            
-            var latest = await GetLatestMetadata("com.furality.updater");
-            if (latest == null) return;
-            
-            // Now see if our installed package version is less than the latest version
-            var updater = await GetInstalledPackageMeta("com.furality.updater");
-            if (updater != null && updater.version == latest.version)
-            {
-                Debug.Log($"Updater is up to date");
-                return;
-            }
-            
-            var tempPath = await DownloadTempPackage(latest.downloadUrl);
-            if (tempPath == null) return;
-
-            
-            var addReq = Client.Add("file:" + Path.GetFileName(latest.downloadUrl));
-            while (!addReq.IsCompleted) {}
-            Debug.Log($"Installing Furality Updater");
-
-                // Now we double check to ensure the package was installed
-            if (addReq.Status != StatusCode.Success)
-            {
-                Debug.LogError("Failed to install Furality Updater");
-                return;
-            }
-            
-            if (isBootstrapping)    // If we're running as bootstrapper and successfully installed the real updater, we can commit self destruct
-            {
-                Debug.Log("Furality Updater installed successfully");
-                var packagePath = Path.Combine(Application.dataPath, "Furality", "Furality Updater");
-                if (Directory.Exists(packagePath))
-                {
-                    Directory.Delete(packagePath, true);
-                }
-            }
-        }
-
-        private static async Task<UpdateMetadata> GetLatestMetadata(string id)
-        {
-            // Download the package list from the server
-            using (var client = new System.Net.Http.HttpClient())
-            {
-                try
-                {
-                    var response = await client.GetAsync("https://raw.githubusercontent.com/furality/unity-sdk/prod/furality_package.json");
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        Debug.LogWarning($"Failed to download package list: {response.StatusCode}");
-                        return null;
-                    }
-                    
-                    var responseString = await response.Content.ReadAsStringAsync();
-                    var metadata = JsonUtility.FromJson<UpdateManifest>(responseString);
-                    return metadata.packages.ToList().Find(m => m.name == id);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogWarning($"Failed to download package list: {e.Message}");
-                    return null;
-                }
-            }
         }
         
         private static async Task<string> DownloadTempPackage(string url)
@@ -153,12 +57,31 @@ namespace Furality.FuralityUpdater.Bootstrap
                 
                 if (uwr.isNetworkError || uwr.isHttpError)
                 {
-                    Debug.LogError($"Failed to download package from {url}: {uwr.error}");
+                    Utils.Error($"Failed to download package from {url}: {uwr.error}");
                     return null;
                 }
                 
                 return tempPath;
             }
+        }
+
+        public static async Task<bool> InstallRemoteTarGz(string url)
+        {
+            var tempPath = await DownloadTempPackage(url);
+            if (tempPath == null) return false;
+            
+            var addReq = Client.Add("file:" + Path.GetFileName(url));
+            while (!addReq.IsCompleted) {}
+            Utils.Log($"Installing Furality Updater");
+
+            // Now we double check to ensure the package was installed
+            if (addReq.Status != StatusCode.Success)
+            {
+                Utils.Error("Failed to install Furality Updater");
+                return false;
+            }
+
+            return false;
         }
 
         private static void AddScopedRegistry(ScopedRegistry pScopeRegistry) {
