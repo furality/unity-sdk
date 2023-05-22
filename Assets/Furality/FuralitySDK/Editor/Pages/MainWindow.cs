@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+#if FURALITY_UPDATER
 using System.Reflection;
 using Furality.FuralityUpdater.Editor;
 using UnityEditor;
@@ -94,3 +95,4 @@ namespace Furality.Editor.Pages
         }
     }
 }
+#endif

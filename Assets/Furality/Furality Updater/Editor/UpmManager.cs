@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using Furality.FuralityUpdater.Editor;
 using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.Networking;
+using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
-namespace Furality.FuralityUpdater.Editor
+namespace Furality.FuralityUpdater.Bootstrap
 {
     [InitializeOnLoad]
     public static class UpmManager
@@ -25,34 +29,84 @@ namespace Furality.FuralityUpdater.Editor
             public List<ScopedRegistry> scopedRegistries = new List<ScopedRegistry>();
         }
 
-        private class UpdateMetadata
+        [Serializable]
+        public class UpdateMetadata
         {
-            public string id;
-            public Version version;
+            public string name;
+            public string version;
             public string downloadUrl;
         }
 
-        private class UpdateManifest
+        [Serializable]
+        public class UpdateManifest
         {
             public int manifestVersion;
-            public List<UpdateMetadata> packages;
+            public UpdateMetadata[] packages;
         }
 
         static UpmManager()
         {
             if (!Application.isPlaying)
-                Task.Run(UpdaterMain);
+                Task.Run(() =>
+                {
+                    AsyncHelper.EnqueueOnMainThread(UpdaterMain);
+                });
+        }
+
+        private static async Task<PackageInfo> GetInstalledPackageMeta(string id)
+        {
+            var installed = await AsyncHelper.MainThread(() =>
+            {
+                var req =  Client.List(true);
+                while (!req.IsCompleted) {}
+
+                return req.Result;
+            });
+            return installed.FirstOrDefault(p => p.name == "org.furality.updater");
         }
 
         private static async void UpdaterMain()
         {
-            var latest = await GetLatestMetadata("org.furality.updater");
+            var name = Assembly.GetExecutingAssembly().GetName().Name;
+            bool isBootstrapping = name != "FuralityUpdater";
+            if (isBootstrapping)
+                Debug.Log("Bootstrapping Furality Updater");
+            
+            var latest = await GetLatestMetadata("com.furality.updater");
             if (latest == null) return;
+            
+            // Now see if our installed package version is less than the latest version
+            var updater = await GetInstalledPackageMeta("com.furality.updater");
+            if (updater != null && updater.version == latest.version)
+            {
+                Debug.Log($"Updater is up to date");
+                return;
+            }
             
             var tempPath = await DownloadTempPackage(latest.downloadUrl);
             if (tempPath == null) return;
 
-            Client.Add("file:" + Path.GetFileName(latest.downloadUrl));
+            
+            var addReq = Client.Add("file:" + Path.GetFileName(latest.downloadUrl));
+            while (!addReq.IsCompleted) {}
+            Debug.Log($"Installing Furality Updater");
+
+                // Now we double check to ensure the package was installed
+            if (addReq.Status != StatusCode.Success)
+            {
+                Debug.LogError("Failed to install Furality Updater");
+                return;
+            }
+            
+            if (isBootstrapping)    // If we're running as bootstrapper and successfully installed the real updater, we can commit self destruct
+            {
+                Debug.Log("Furality Updater installed successfully");
+                var packagePath = Path.Combine(Application.dataPath, "Furality", "Furality Updater");
+                if (Directory.Exists(packagePath))
+                {
+                    Directory.Delete(packagePath, true);
+                }
+            }
         }
 
         private static async Task<UpdateMetadata> GetLatestMetadata(string id)
@@ -62,7 +116,7 @@ namespace Furality.FuralityUpdater.Editor
             {
                 try
                 {
-                    var response = await client.GetAsync("https://raw.githubusercontent.com/furality/unity-sdk/master/furality_package.json");  //TODO: Don't forget, upon release we need to make this public
+                    var response = await client.GetAsync("https://raw.githubusercontent.com/furality/unity-sdk/prod/furality_package.json");
                     if (!response.IsSuccessStatusCode)
                     {
                         Debug.LogWarning($"Failed to download package list: {response.StatusCode}");
@@ -70,10 +124,10 @@ namespace Furality.FuralityUpdater.Editor
                     }
                     
                     var responseString = await response.Content.ReadAsStringAsync();
-                    var metadata = JsonUtility.FromJson<List<UpdateMetadata>>(responseString);
-                    return metadata.Find(m => m.id == id);
+                    var metadata = JsonUtility.FromJson<UpdateManifest>(responseString);
+                    return metadata.packages.ToList().Find(m => m.name == id);
                 }
-                catch (System.Exception e)
+                catch (Exception e)
                 {
                     Debug.LogWarning($"Failed to download package list: {e.Message}");
                     return null;
@@ -83,7 +137,7 @@ namespace Furality.FuralityUpdater.Editor
         
         private static async Task<string> DownloadTempPackage(string url)
         {
-            var tempPath = await AsyncHelper.MainThread(() => Path.Combine(Application.dataPath, "..", Path.GetFileName(url)));
+            var tempPath = Path.Combine(Application.dataPath, "..", "Packages", Path.GetFileName(url));
             // Using unity web client to download the package
             using (var uwr = UnityWebRequest.Get(url))
             {
@@ -106,8 +160,6 @@ namespace Furality.FuralityUpdater.Editor
                 return tempPath;
             }
         }
-        
-        private static void UpdatePackage(string id) => Client.Add(id);
 
         private static void AddScopedRegistry(ScopedRegistry pScopeRegistry) {
             var manifestPath = Path.Combine(Application.dataPath, "..", "Packages/manifest.json");

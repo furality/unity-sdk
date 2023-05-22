@@ -1,4 +1,5 @@
-﻿using Furality.Editor.Auth;
+﻿#if FURALITY_UPDATER
+using Furality.Editor.Auth;
 using UnityEditor;
 using UnityEngine;
 
@@ -58,7 +59,8 @@ namespace Furality.Editor.Pages
                     GUI.enabled = !isLoggingIn;
                     if (GUILayout.Button(!isLoggingIn ? "Login" : "Logging in..."))
                     {
-                        AuthManager.Login(EditorWindow.GetWindow<MainWindow>());
+                        var window = EditorWindow.GetWindow<MainWindow>();
+                        AuthManager.Login(s => window.Dispatch(() => AuthManager.HandleCodeCallback(s)));
                     }
                     GUI.enabled = true;
                 }
@@ -71,3 +73,4 @@ namespace Furality.Editor.Pages
         }
     }
 }
+#endif

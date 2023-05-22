@@ -31,7 +31,7 @@ namespace Furality.Editor.Auth
     {
         private const string ClientID = "f7203a2d-f938-4be2-be47-d4305d1542a8";
         private const string TokenEndpoint = "https://boop.fynn.ai/oidc/token";
-        private static readonly string AuthURL = $"https://boop.fynn.ai/oidc/auth?response_type=code&client_id={ClientID}&scope=openid+profile&redirect_uri=http://localhost:8080/callback";
+        private static readonly string AuthURL = $"https://boop.fynn.ai/oidc/auth?response_type=code&client_id={ClientID}&scope=openid+profile+vrchat&redirect_uri=http://localhost:8080/callback";
 
         [CanBeNull] public static UserData CurrentUser { get; private set; }
         [CanBeNull] public static FoxApi Api { get; private set; }
@@ -40,13 +40,15 @@ namespace Furality.Editor.Auth
         
         public static bool IsLoggingIn => CallbackManager != null;
 
-        public static void Login(MainWindow callerWindow)
+        // Takes a callback to main thread so we can run HandleCodeCallback from it
+        public static void Login(Action<string> callback)
         {
             Application.OpenURL(AuthURL);
-            CallbackManager = new HttpCallbackManager(s => callerWindow.Dispatch(() => HandleCodeCallback(s)));
+            // Use our callback 
+            CallbackManager = new HttpCallbackManager(callback.Invoke);
         }
 
-        private static void HandleCodeCallback(string code)
+        public static void HandleCodeCallback(string code)
         {
             // Destroy the callback manager to kill the server
             CallbackManager = null;
