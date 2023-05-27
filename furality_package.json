@@ -3,13 +3,13 @@
   "packages": [
     {
       "name": "com.furality.updater",
-      "version": "1.0.1",
-      "downloadUrl": "https://github.com/furality/unity-sdk/releases/download/1.0.1/com.furality.updater-1.0.1.tgz"
+      "version": "1.0.2",
+      "downloadUrl": "https://github.com/furality/unity-sdk/releases/download/1.0.2/com.furality.updater-1.0.2.tgz"
     },
     {
       "name": "com.furality.sdk",
-      "version": "1.0.0",
-      "downloadUrl": "https://github.com/furality/unity-sdk/releases/download/1.0.0/com.furality.sdk-1.0.0.tgz"
+      "version": "1.0.2",
+      "downloadUrl": "https://github.com/furality/unity-sdk/releases/download/1.0.2/com.furality.sdk-1.0.2.tgz"
     }
   ]
 }
