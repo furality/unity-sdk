@@ -8,8 +8,8 @@
     },
     {
       "name": "com.furality.sdk",
-      "version": "1.2.1",
-      "downloadUrl": "https://github.com/furality/unity-sdk/releases/download/1.2.1/com.furality.sdk-1.2.1.tgz"
+      "version": "1.2.2",
+      "downloadUrl": "https://github.com/furality/unity-sdk/releases/download/1.2.2/com.furality.sdk-1.2.2.tgz"
     }
   ]
 }
