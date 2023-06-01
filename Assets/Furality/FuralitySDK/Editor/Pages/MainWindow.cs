@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using Furality.FuralityUpdater.Editor;
+using Furality.SDK.External.Auth;
 using UnityEditor;
+using UnityEditor.PackageManager;
 using UnityEngine;
 
-namespace Furality.Editor.Pages
+namespace Furality.SDK.Pages
 {
+    [InitializeOnLoad]
     public class MainWindow : EditorWindow
     {
-        private Queue<Action> _dispatchQueue = new Queue<Action>();
-        private Dictionary<string, IMenuPage> _pages = new Dictionary<string, IMenuPage>
+        private readonly Queue<Action> _dispatchQueue = new Queue<Action>();
+        private readonly Dictionary<string, IMenuPage> _pages = new Dictionary<string, IMenuPage>
         {
             {"Downloads", new DownloadsPage()},
             {"Tools", new ToolsPage()},
@@ -20,14 +21,51 @@ namespace Furality.Editor.Pages
         
         private IMenuPage _currentPage;
         private Texture2D _logo;
+        private string _cachedVersion = "Unknown Version";
 
-        [MenuItem("Window/Furality/Show SDK")]
+        public MainWindow()
+        {
+            EditorApplication.update -= ShowOnFirstBoot;
+            EditorApplication.update += ShowOnFirstBoot;
+        }
+
+        [MenuItem("Furality/Show Furality Asset Manager")]
         private static void ShowWindow()
         {
             var window = GetWindow<MainWindow>();
-            window.titleContent = new GUIContent("Furality SDK");
+            window.titleContent = new GUIContent("Furality Asset Manager");
             window.minSize = new Vector2(350, 500);
             window.Show();
+        }
+
+        private string GetVersion()
+        {
+            // Query UPM for the current version of org.furality.sdk
+            var list = Client.List(true);
+            while (!list.IsCompleted)
+            {
+                // Wait for the query to complete
+            }
+            var package = list.Result.FirstOrDefault(p => p.name == "org.furality.sdk");
+            if (package == null)
+                return "Unknown Version";
+            
+            // Get the version from the package
+            return package.version;
+        }
+
+        // Checks playerprefs to see if this is the first time the user has installed FAM
+        // If it is, pop up the window and set the playerpref to true
+        private static void ShowOnFirstBoot()
+        {
+            EditorApplication.update -= ShowOnFirstBoot;
+            if (EditorApplication.isPlaying)
+                return;
+
+            if (!EditorPrefs.GetBool("furality.hasSeenBefore"))
+                ShowWindow();
+            
+            EditorPrefs.SetBool("furality.hasSeenBefore", true);
         }
 
         private void OnEnable()
@@ -38,6 +76,11 @@ namespace Furality.Editor.Pages
             }
         
             _logo = Resources.Load<Texture2D>("furality-logo");
+            AuthManager.AttemptCachedLogin();
+
+            _cachedVersion = GetVersion();
+            
+            AssetDatabase.importPackageCompleted += (s) => Debug.Log("Package Imported: "+s);
         }
 
         private void OnGUI()
@@ -49,7 +92,7 @@ namespace Furality.Editor.Pages
             GUILayout.FlexibleSpace();
             if (_logo != null)
             {
-                var aspect = (float)_logo.width / _logo.height;
+                var aspect = (float)_logo.width / (_logo.height+200);
                 var logoWidth = Mathf.Min(maxLogoWidth, maxLogoHeight * aspect);
                 var logoHeight = logoWidth / aspect;
                 GUILayout.Label(_logo, GUILayout.Width(logoWidth), GUILayout.Height(logoHeight));
@@ -58,7 +101,7 @@ namespace Furality.Editor.Pages
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.BeginHorizontal();
-            foreach (var page in _pages)
+                foreach (var page in _pages)
             {
                 bool isSelected = page.Value == _currentPage;
                 if (isSelected)
@@ -78,19 +121,13 @@ namespace Furality.Editor.Pages
                 EditorGUILayout.Space(10);
                 _currentPage.Draw();
             }
-        }
-        
-        public void Dispatch(Action action)
-        {
-            _dispatchQueue.Enqueue(action);
-        }
-        
-        private void Update()
-        {
-            while (_dispatchQueue.Count > 0)
-            {
-                _dispatchQueue.Dequeue().Invoke();
-            }
+            
+            // Displaying grey text in the bottom left corner
+            GUIStyle greyTextStyle = new GUIStyle(GUI.skin.label);
+            greyTextStyle.normal.textColor = Color.gray;
+            GUILayout.BeginArea(new Rect(10, Screen.height - 50, 200, 20));
+            GUILayout.Label(_cachedVersion, greyTextStyle);
+            GUILayout.EndArea();
         }
     }
 }

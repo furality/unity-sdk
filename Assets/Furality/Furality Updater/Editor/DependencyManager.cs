@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Furality.Editor.AssetHandling;
 using Furality.Editor.Auth;
 using UnityEditor;
 using UnityEngine;

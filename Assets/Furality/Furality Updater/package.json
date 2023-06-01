@@ -1,6 +1,6 @@
-﻿{
+{
   "name": "org.furality.updater",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "displayName": "Furality Updater",
   "description": "Main auto-updater for the Furality SDK",
   "author": {

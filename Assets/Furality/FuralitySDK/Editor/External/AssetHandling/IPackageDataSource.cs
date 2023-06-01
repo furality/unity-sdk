@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
-using Furality.Editor.AssetHandling;
+using System.Threading.Tasks;
 
-namespace Furality.FuralityUpdater.Editor
+namespace Furality.SDK.External.Assets
 {
     public interface IPackageDataSource
     {
-        Package GetPackage(string id);  // Returns a package
-        
         IEnumerable<FuralityPackage> GetPackages();  // Returns all packages
+        string GetInstalledPackage(string id);
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace Furality.Editor.Pages
+﻿namespace Furality.SDK.Pages
 {
     public interface IMenuPage
     {
