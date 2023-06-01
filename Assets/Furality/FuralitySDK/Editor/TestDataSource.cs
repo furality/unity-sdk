@@ -17,14 +17,14 @@ namespace Furality.SDK
                 ImageUrl = "https://media.furality.online/image/f6/Furality_Sylva_Shader_thumb.jpg",
                 Category = "Shaders",
                 ConventionId = "Furality Sylva",
-                Version = "1.3.1",
+                Version = "1.3.3",
                 AttendanceLevel = AttendanceLevel.none,
                 IsPublic = true,
                 Dependencies = new Dictionary<string, string>()
                 {
                     {"com.llealloo.audiolink", "0.3.2"}
                 },
-                FallbackUrl = "https://github.com/furality/vcc-furality-sylva-shader/releases/download/1.3.1/com.furality.sylvashader-1.3.1.unitypackage"
+                FallbackUrl = "https://github.com/furality/vcc-furality-sylva-shader/releases/download/1.3.3/com.furality.sylvashader-1.3.3.unitypackage"
             },
             
             // Asset Packs
@@ -38,7 +38,7 @@ namespace Furality.SDK
                 ConventionId = "Furality Sylva",
                 Dependencies = new Dictionary<string, string>()
                 {
-                    {"com.furality.sylvashader", "1.3.1"}
+                    {"com.furality.sylvashader", "1.3.3"}
                 },
                 Version = "1.0.0",
                 AttendanceLevel = AttendanceLevel.none,
@@ -56,7 +56,7 @@ namespace Furality.SDK
                 ConventionId = "Furality Sylva",
                 Dependencies = new Dictionary<string, string>()
                 {
-                    {"com.furality.sylvashader", "1.3.1"}
+                    {"com.furality.sylvashader", "1.3.3"}
                 },
                 Version = "1.0.0",
                 AttendanceLevel = AttendanceLevel.attendee,
@@ -73,7 +73,7 @@ namespace Furality.SDK
                 ConventionId = "Furality Sylva",
                 Dependencies = new Dictionary<string, string>()
                 {
-                    {"com.furality.sylvashader", "1.3.1"}
+                    {"com.furality.sylvashader", "1.3.3"}
                 },
                 Version = "1.0.0",
                 AttendanceLevel = AttendanceLevel.first_class,
@@ -89,7 +89,7 @@ namespace Furality.SDK
                 ConventionId = "Furality Sylva",
                 Dependencies = new Dictionary<string, string>()
                 {
-                    {"com.furality.sylvashader", "1.3.1"}
+                    {"com.furality.sylvashader", "1.3.3"}
                 },
                 Version = "1.0.0",
                 AttendanceLevel = AttendanceLevel.sponsor,
@@ -121,7 +121,7 @@ namespace Furality.SDK
                 ConventionId = "Furality Sylva",
                 Dependencies = new Dictionary<string, string>()
                 {
-                    {"com.furality.sylvashader", "1.3.1"},
+                    {"com.furality.sylvashader", "1.3.3"},
                     {"com.furality.badgemaker", "1.0.1"}
                 },
                 Version = "1.0.0",
@@ -138,7 +138,7 @@ namespace Furality.SDK
                 ConventionId = "Furality Sylva",
                 Dependencies = new Dictionary<string, string>()
                 {
-                    {"com.furality.sylvashader", "1.3.1"},
+                    {"com.furality.sylvashader", "1.3.3"},
                     {"com.furality.badgemaker", "1.0.1"}
                 },
                 Version = "1.0.0",
@@ -155,7 +155,7 @@ namespace Furality.SDK
                 ConventionId = "Furality Sylva",
                 Dependencies = new Dictionary<string, string>()
                 {
-                    {"com.furality.sylvashader", "1.3.1"},
+                    {"com.furality.sylvashader", "1.3.3"},
                     {"com.furality.badgemaker", "1.0.1"}
                 },
                 Version = "1.0.0",

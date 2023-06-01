@@ -28,9 +28,31 @@ namespace Furality.SDK.External.Api
         }
         
         private static ApiUser _cachedProfile;
-        public static AttendanceLevel AttendanceLevel => _cachedProfile == null ? AttendanceLevel.none : (AttendanceLevel) Enum.Parse(typeof(AttendanceLevel), _cachedProfile.registrationLevel);
-        public static PatreonLevel PatreonLevel => _cachedProfile?.patreon?.tier == null ? PatreonLevel.None : (PatreonLevel) Enum.Parse(typeof(PatreonLevel), _cachedProfile.patreon.tier);
-        
+        public static AttendanceLevel AttendanceLevel
+        {
+            get
+            {
+                if (_cachedProfile?.registrationLevel == null)
+                    return AttendanceLevel.none;
+
+                return Enum.TryParse(_cachedProfile.registrationLevel, true, out AttendanceLevel level)
+                    ? level
+                    : AttendanceLevel.none;
+            }
+        }
+
+        public static PatreonLevel PatreonLevel
+        {
+            get
+            {
+                if (_cachedProfile?.patreon?.tier == null)
+                    return PatreonLevel.None;
+
+                return Enum.TryParse(_cachedProfile.patreon.tier, true, out PatreonLevel level) ? level :
+                    PatreonLevel.None;
+            }
+        }
+
         public static void Destroy()
         {
             _cachedProfile = null;
