@@ -8,3 +8,6 @@ the Furality SDK would automatically install Audiolink using whatever method is 
 
 ## 🛠️ Tools
 The tools tab is a quick way to access your installed tools. It provides a unified frontend for them.
+
+## ℹ️ Disclaimer
+This SDK is still in development, and as such, may be unstable. We recommend waiting for the official release before utilizing this package in your projects.
