@@ -1,0 +1,10 @@
+{
+  "name": "org.furality.sdk",
+  "version": "1.2.4",
+  "displayName": "Furality SDK",
+  "description": "Furality SDK",
+  "author": {
+    "name": "Furality",
+    "url": "https://furality.org"
+  }
+}
