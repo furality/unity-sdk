@@ -6,12 +6,12 @@ using UnityEngine;
 
 namespace Furality.SDK.Pages
 {
-    public class ToolsPage : IMenuPage
+    public class ToolsPage : MenuPage
     {
         private Dictionary<string, Type> _windows = new Dictionary<string, Type>();
         private (string, EditorWindow)? _currentPage;
         
-        public ToolsPage()
+        public ToolsPage(MainWindow mainWindow) : base(mainWindow)
         {
             // Get all namespaces present under the Furality.Editor.Tools namespace under all assemblies
             var namespaces = AppDomain.CurrentDomain.GetAssemblies()
@@ -41,7 +41,7 @@ namespace Furality.SDK.Pages
             }
         }
 
-        public void Draw()
+        public override void Draw()
         {
             if (_currentPage == null)
             {

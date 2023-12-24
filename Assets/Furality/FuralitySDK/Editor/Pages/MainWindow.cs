@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Furality.SDK.External.Auth;
+using Furality.SDK.External.Api;
+using Furality.SDK.External.Boop;
 using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEngine;
@@ -12,18 +13,15 @@ namespace Furality.SDK.Pages
     public class MainWindow : EditorWindow
     {
         private readonly Queue<Action> _dispatchQueue = new Queue<Action>();
-        private readonly Dictionary<string, IMenuPage> _pages = new Dictionary<string, IMenuPage>
-        {
-            {"Downloads", new DownloadsPage()},
-            {"Tools", new ToolsPage()},
-            {"Settings", new SettingsPage()}
-        };
+        private Dictionary<string, MenuPage> _pages = new Dictionary<string, MenuPage>();
         
-        private IMenuPage _currentPage;
+        private MenuPage _currentPage;
         private Texture2D _logo;
         private string _cachedVersion = "Unknown Version";
 
-        public MainWindow()
+        public static FoxApi Api = new FoxApi();
+        
+        static MainWindow()
         {
             EditorApplication.update -= ShowOnFirstBoot;
             EditorApplication.update += ShowOnFirstBoot;
@@ -32,6 +30,7 @@ namespace Furality.SDK.Pages
         [MenuItem("Furality/Show Furality Asset Manager")]
         private static void ShowWindow()
         {
+            BoopAuth.Login();
             var window = GetWindow<MainWindow>();
             window.titleContent = new GUIContent("Furality Asset Manager");
             window.minSize = new Vector2(350, 500);
@@ -70,13 +69,19 @@ namespace Furality.SDK.Pages
 
         private void OnEnable()
         {
+            _pages = new Dictionary<string, MenuPage>
+            {
+                { "Assets", new DownloadsPage(this) },
+                { "Settings", new SettingsPage(this) },
+                { "Help", new ToolsPage(this) }
+            };
+            
             if (_currentPage == null)
             {
                 _currentPage = _pages.First().Value;
             }
         
             _logo = Resources.Load<Texture2D>("furality-logo");
-            AuthManager.AttemptCachedLogin();
 
             _cachedVersion = GetVersion();
             
@@ -101,7 +106,7 @@ namespace Furality.SDK.Pages
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.BeginHorizontal();
-                foreach (var page in _pages)
+            foreach (var page in _pages)
             {
                 bool isSelected = page.Value == _currentPage;
                 if (isSelected)

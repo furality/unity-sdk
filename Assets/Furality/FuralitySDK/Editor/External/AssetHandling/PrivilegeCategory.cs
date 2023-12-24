@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Furality.SDK.External.Api;
+using Furality.SDK.Pages;
 using UnityEditor;
 using UnityEngine;
 
@@ -24,7 +25,8 @@ namespace Furality.SDK.External.Assets
             if (_selectedClass == null)
                 _selectedClass = _assetClasses.First();
 
-            if (CategoryName == "Patreon Assets" && FoxUser.PatreonLevel <= PatreonLevel.Green)
+            var profile = MainWindow.Api.UsersApi.CurrentUser;
+            if (CategoryName == "Patreon Assets" && profile.patreon.GetTier() <= PatreonLevel.Green)
             {
                 EditorGUILayout.HelpBox("You need to be a Patreon to access this content", MessageType.Warning);
                 return;

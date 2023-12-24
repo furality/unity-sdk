@@ -1,55 +1,73 @@
 ﻿using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Furality.SDK.External.Api.Endpoints;
+using Furality.SDK.External.Boop;
+using UnityEditor;
 using UnityEngine;
 
 namespace Furality.SDK.External.Api
 {
-    public static class FoxApi
+    public class FoxApi
     {
-        private const string BaseUrl = "https://api.fynn.ai/v1/";
-        
-        private static string _authToken;
+        private const string BaseUrl = "https://api.fynn.ai/v2/";
 
-        public static void Instantiate(string token)
+        private static string _authToken
         {
-            _authToken = token;
-#pragma warning disable CS4014  //shut up compiler
-            FoxUser.GetProfile();
-#pragma warning restore CS4014
+            get => SessionState.GetString("furality:authToken", null);
+            set => SessionState.SetString("furality:authToken", value);
         }
 
-        public static void Destroy()
+        public FoxFiles FilesApi;
+        public FoxUsers UsersApi;
+
+        public bool IsLoggedIn => !string.IsNullOrEmpty(_authToken) && FilesApi.HasFinishedLogin && UsersApi.HasFinishedLogin;
+
+        public FoxApi()
+        {
+            BoopAuth.OnLoggedIn += OnLogin;
+            BoopAuth.OnLoggedOut += Logout;
+            
+            FilesApi = new FoxFiles(this);
+            UsersApi = new FoxUsers(this);
+        }
+
+        private void Logout()
         {
             _authToken = null;
-            FoxUser.Destroy();
-        }
-        
-        public static bool IsLoggedIn() => !string.IsNullOrEmpty(_authToken);
-
-        public static async Task<T> Get<T>(string endpoint)
-        {
-            if (!IsLoggedIn())
-            {
-                return default;
-            }
             
+            FilesApi.Dispose();
+            UsersApi.Dispose();
+        }
+
+        private void OnLogin(TokenResponse token)
+        {
+            _authToken = token.access_token;
+            
+            FilesApi.OnPostLogin();
+            UsersApi.OnPostLogin();
+        }
+
+        public async Task<T> Get<T>(string endpoint) where T : class
+        {
+            if (string.IsNullOrEmpty(_authToken))
+            {
+                return null;
+            }
+
             // Send a GET request to the endpoint
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _authToken);
-                var response = client.GetAsync(BaseUrl + endpoint);
-                while (!response.IsCompleted)
+                var response = await client.GetAsync(BaseUrl + endpoint);
+
+                if (!response.IsSuccessStatusCode)
                 {
-                    await Task.Delay(100);
-                }
-                if (!response.Result.IsSuccessStatusCode)
-                {
-                    Debug.LogError($"Failed to GET {endpoint}: {response.Result.StatusCode}");
-                    return default;
+                    Debug.LogError($"Failed to GET {endpoint}: {response.StatusCode}");
+                    return null;
                 }
 
-                var json = await response.Result.Content.ReadAsStringAsync();
+                var json = await response.Content.ReadAsStringAsync();
                 return JsonUtility.FromJson<T>(json);
             }
         }

@@ -23,7 +23,7 @@ namespace Furality.SDK.External.VCC
                 client.DefaultRequestHeaders.Add("Origin", "http://localhost:5477/");
                 client.DefaultRequestHeaders.Host = "localhost";
                 
-                client.Timeout = TimeSpan.FromSeconds(3);
+                client.Timeout = TimeSpan.FromSeconds(1);
 
                 var request = new HttpRequestMessage(new HttpMethod(method), VccUrl+endpoint);
                 if (body != null)

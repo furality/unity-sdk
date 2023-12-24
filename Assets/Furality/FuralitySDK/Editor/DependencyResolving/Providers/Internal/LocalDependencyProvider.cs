@@ -1,11 +1,10 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
-using Furality.FuralitySDK.Editor;
 using Furality.SDK.External.Assets;
+using Furality.SDK.Pages;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Networking;
-using AsyncHelper = Furality.SDK.Helpers.AsyncHelper;
+using Furality.SDK.Helpers;
 
 namespace Furality.SDK.DependencyResolving
 {
@@ -26,31 +25,6 @@ namespace Furality.SDK.DependencyResolving
                     "https://github.com/llealloo/vrc-udon-audio-link/releases/download/0.3.2/AudioLink_0.3.2_minimal.unitypackage"
             },
         };
-        
-        private static void InstallPackage(string url, string path)
-        {
-            // Step 2, we need to download the package.
-            using (var uwr = UnityWebRequest.Get(url))
-            {
-                uwr.SendWebRequest();
-                        
-                while (!uwr.isDone)
-                {
-                }
-
-                if (uwr.isNetworkError || uwr.isHttpError)
-                {
-                    return;
-                }
-
-                // Save the package to disk.
-                System.IO.File.WriteAllBytes(path, uwr.downloadHandler.data);
-            }
-                    
-            // Step 2, we need to install the package.
-            Debug.Log($"Installing package {path}");
-            UnityPackageImportQueue.Add(path);
-        }
         
         public async Task<bool> Resolve(string id, string version)
         {
@@ -93,7 +67,7 @@ namespace Furality.SDK.DependencyResolving
             {
                 foreach (var dependency in package.Dependencies)
                 {
-                    if (!await DependencyResolver.Resolve(dependency.Key, dependency.Value))
+                    if (!await DependencyManager.Resolve(dependency.Key, dependency.Value))
                     {
                         return false;
                     }
@@ -101,7 +75,7 @@ namespace Furality.SDK.DependencyResolving
             }
             
             // Then install the package
-            InstallPackage(package.FallbackUrl, path);
+            DownloadHelper.Enqueue(package.Id, package.FallbackUrl);
             return true;
         }
     }

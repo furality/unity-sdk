@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Furality.SDK.External.Api;
+using Furality.SDK.Helpers;
+using Furality.SDK.Pages;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,16 +13,16 @@ namespace Furality.SDK.External.Assets
         public IEnumerable<IGrouping<string, FuralityPackage>> _downloads;
         private Dictionary<string, bool> _foldOutStates = new Dictionary<string, bool>();
         private static Dictionary<string, Texture2D> _imageCache = new Dictionary<string, Texture2D>();
-        private IPackageDataSource _packageDataSource;
-        private bool _isDownloading = false;
+        private List<IPackageDataSource> _packageDataSources;
+        private bool _isDownloading;
         private Vector2 _scrollPos;
         private readonly Dictionary<string, string> _downloadVersionCache = new Dictionary<string, string>();
 
-        public AssetClass(string name, IEnumerable<FuralityPackage> downloads = null, IPackageDataSource dataSource = null)
+        public AssetClass(string name, IEnumerable<FuralityPackage> downloads = null, List<IPackageDataSource> dataSources = null)
         {
             Name = name;
             _downloads = downloads.GroupBy(d=>d.ConventionId);
-            _packageDataSource = dataSource;
+            _packageDataSources = dataSources;
             
             if (_downloads == null) return;
 
@@ -31,9 +32,10 @@ namespace Furality.SDK.External.Assets
                 foreach (var item in download)
                 {
                     if (_imageCache.ContainsKey(item.ImageUrl)) continue;
-                    _imageCache.Add(item.ImageUrl, Utils.Utils.DownloadImage(item.ImageUrl));
+                    _imageCache.Add(item.ImageUrl, DownloadHelper.DownloadImage(item.ImageUrl));
                 }
             }
+            
             // Set the highest foldout to true
             _foldOutStates[_foldOutStates.Keys.First()] = true;
         }
@@ -66,16 +68,19 @@ namespace Furality.SDK.External.Assets
             AssetDatabase.importPackageCompleted += OnPackageImported;
             AssetDatabase.importPackageCancelled += OnPackageImportCancelled;
             AssetDatabase.importPackageFailed += OnPackageImportFailed;
-            await DependencyManager.UpgradeOrInstall(package, false, new TestDataSource());
+            await DependencyManager.UpgradeOrInstall(package, false);
         }
         
         public void Draw()
         {
+            
             if (_downloads == null)
             {
                 return;
             }
 
+            _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos, GUILayout.ExpandHeight(true));
+            
             foreach (var category in _downloads)
             {
                 _foldOutStates[category.Key] = EditorGUILayout.Foldout(_foldOutStates[category.Key], category.Key);
@@ -84,15 +89,11 @@ namespace Furality.SDK.External.Assets
                 {
                     continue;
                 }
-
-                _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos, GUILayout.ExpandHeight(true));
+                
 
                 // Sort by attendance lvel
                 foreach (var download in category)
                 {
-                    if (download.AttendanceLevel > FoxUser.AttendanceLevel 
-                        || download.PatreonLevel > FoxUser.PatreonLevel) continue;
-
                     // Render the box
                     GUILayout.BeginVertical("box");
                     {
@@ -124,10 +125,13 @@ namespace Furality.SDK.External.Assets
                         GUI.enabled = !_isDownloading;
     
                         // Check if the version is cached. If not, add it to the cache
+                        //TODO: Move this to a delegate so it only gets run after package install or on construct
                         if (!_downloadVersionCache.TryGetValue(download.Id, out var installedPackageVersion))
                         {
-                            installedPackageVersion = _packageDataSource.GetInstalledPackage(download.Id);
-                            _downloadVersionCache.Add(download.Id, installedPackageVersion);
+                            installedPackageVersion = _packageDataSources.Select(pds => pds.GetInstalledPackage(download.Id)).FirstOrDefault(p => !string.IsNullOrEmpty(p));
+                            
+                            if (!string.IsNullOrEmpty(installedPackageVersion))
+                                _downloadVersionCache.Add(download.Id, installedPackageVersion);
                         }
                         if (installedPackageVersion != null)
                         {
