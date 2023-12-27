@@ -30,7 +30,6 @@ namespace Furality.SDK.Pages
         [MenuItem("Furality/Show Furality Asset Manager")]
         private static void ShowWindow()
         {
-            BoopAuth.Login();
             var window = GetWindow<MainWindow>();
             window.titleContent = new GUIContent("Furality Asset Manager");
             window.minSize = new Vector2(350, 500);
@@ -69,6 +68,10 @@ namespace Furality.SDK.Pages
 
         private void OnEnable()
         {
+            Debug.Log("OnEnable MainWindow");
+            
+            BoopAuth.Login();
+            
             _pages = new Dictionary<string, MenuPage>
             {
                 { "Assets", new DownloadsPage(this) },

@@ -38,12 +38,35 @@ namespace Furality.SDK.External.Assets
             
             // Set the highest foldout to true
             _foldOutStates[_foldOutStates.Keys.First()] = true;
+            RefreshVersionCache();
+        }
+
+        private void RefreshVersionCache()
+        {
+            UnityPackageImportQueue.OnImportsFinished -= RefreshVersionCache;
+            _downloadVersionCache.Clear();
+            
+            foreach (var category in _downloads)
+            {
+                foreach (var download in category)
+                {
+                    if (!_downloadVersionCache.TryGetValue(download.Id, out var installedPackageVersion))
+                    {
+                        installedPackageVersion = _packageDataSources
+                            .Select(pds => pds.GetInstalledPackage(download.Id))
+                            .FirstOrDefault(p => !string.IsNullOrEmpty(p));
+
+                        if (!string.IsNullOrEmpty(installedPackageVersion))
+                            _downloadVersionCache.Add(download.Id, installedPackageVersion);
+                    }
+                }
+            }
         }
 
         private void OnPackageImported(string packageName)
         {
             Debug.Log("Package Imported: "+packageName);
-
+            
             _isDownloading = false;
             AssetDatabase.importPackageCompleted -= OnPackageImported;
         }
@@ -68,12 +91,12 @@ namespace Furality.SDK.External.Assets
             AssetDatabase.importPackageCompleted += OnPackageImported;
             AssetDatabase.importPackageCancelled += OnPackageImportCancelled;
             AssetDatabase.importPackageFailed += OnPackageImportFailed;
+            UnityPackageImportQueue.OnImportsFinished += RefreshVersionCache;
             await DependencyManager.UpgradeOrInstall(package, false);
         }
         
         public void Draw()
         {
-            
             if (_downloads == null)
             {
                 return;
@@ -83,7 +106,8 @@ namespace Furality.SDK.External.Assets
             
             foreach (var category in _downloads)
             {
-                _foldOutStates[category.Key] = EditorGUILayout.Foldout(_foldOutStates[category.Key], category.Key);
+                if (_foldOutStates.Count > 1)
+                    _foldOutStates[category.Key] = EditorGUILayout.Foldout(_foldOutStates[category.Key], category.Key);
 
                 if (!_foldOutStates[category.Key])
                 {
@@ -126,14 +150,8 @@ namespace Furality.SDK.External.Assets
     
                         // Check if the version is cached. If not, add it to the cache
                         //TODO: Move this to a delegate so it only gets run after package install or on construct
-                        if (!_downloadVersionCache.TryGetValue(download.Id, out var installedPackageVersion))
-                        {
-                            installedPackageVersion = _packageDataSources.Select(pds => pds.GetInstalledPackage(download.Id)).FirstOrDefault(p => !string.IsNullOrEmpty(p));
-                            
-                            if (!string.IsNullOrEmpty(installedPackageVersion))
-                                _downloadVersionCache.Add(download.Id, installedPackageVersion);
-                        }
-                        if (installedPackageVersion != null)
+                        
+                        if (_downloadVersionCache.TryGetValue(download.Id, out var installedPackageVersion))
                         {
                             if (download.Version != installedPackageVersion)
                             {

@@ -14,7 +14,7 @@ namespace Furality.SDK.DependencyResolving
 
         public class BasePackageRequest
         {
-            public string projectPath;
+            public string projectId;
 
             public string packageId;
         }
@@ -31,9 +31,9 @@ namespace Furality.SDK.DependencyResolving
             return response.success;
         }
         
-        public async Task RemovePackage(string projectPath, string packageId) => await RemovePackage(new BasePackageRequest
+        public async Task RemovePackage(string projectId, string packageId) => await RemovePackage(new BasePackageRequest
         {
-            projectPath = projectPath,
+            projectId = projectId,
             packageId = packageId
         });
 
@@ -41,8 +41,7 @@ namespace Furality.SDK.DependencyResolving
         {
             return await AddPackage(new AddPackageRequest
             {
-                projectPath = Application.dataPath.Substring(0,
-                    Application.dataPath.LastIndexOf("/Assets", StringComparison.Ordinal)),
+                projectId = ProjectManifest.ProjectId,
                 packageId = id,
                 version = version
             });

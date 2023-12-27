@@ -10,14 +10,16 @@ namespace Furality.SDK.External.Assets
     public class PrivilegeCategory
     {
         public readonly string CategoryName;
-        public IEnumerable<AssetClass> _assetClasses;
+        private readonly List<AssetClass> _assetClasses;
+        private readonly int _numAssetClasses;
         
         private AssetClass _selectedClass; 
         
-        public PrivilegeCategory(string categoryName, IEnumerable<AssetClass> assetClasses)
+        public PrivilegeCategory(string categoryName, List<AssetClass> assetClasses)
         {
             CategoryName = categoryName;
             _assetClasses = assetClasses;
+            _numAssetClasses = _assetClasses.Count();
         }
 
         public void Draw()
@@ -33,24 +35,28 @@ namespace Furality.SDK.External.Assets
             }
             
             GUILayout.BeginHorizontal();
-            foreach (var assetClass in _assetClasses)
+            if (_numAssetClasses > 1)
             {
-                bool isSelected = assetClass?.Name == _selectedClass?.Name;
-                if (isSelected)
+                foreach (var assetClass in _assetClasses)
                 {
-                    GUI.color = new Color(1.2f, 1.2f, 1.2f);
-                }
-                
-                if (GUILayout.Button(assetClass.Name, GUILayout.ExpandWidth(true)))
-                {
-                    _selectedClass = assetClass;
-                }
-                
-                if (isSelected)
-                {
-                    GUI.color = Color.white;
+                    bool isSelected = assetClass?.Name == _selectedClass?.Name;
+                    if (isSelected)
+                    {
+                        GUI.color = new Color(1.2f, 1.2f, 1.2f);
+                    }
+
+                    if (GUILayout.Button(assetClass.Name, GUILayout.ExpandWidth(true)))
+                    {
+                        _selectedClass = assetClass;
+                    }
+
+                    if (isSelected)
+                    {
+                        GUI.color = Color.white;
+                    }
                 }
             }
+
             GUILayout.EndHorizontal();
 
             GUILayout.BeginVertical();

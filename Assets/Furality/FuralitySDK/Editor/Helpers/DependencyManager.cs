@@ -17,10 +17,7 @@ namespace Furality.SDK.Helpers
         public static async Task<bool> Resolve(Package package) => await _dr.Resolve(package);
         public static async Task<bool> Resolve(string id, string version) => await _dr.Resolve(id, version);
         
-        private static async Task<bool> IsPackageInstalled(Package package)
-        {
-            return await ProjectManifest.IsDependencyInstalled(package.Id, package.Version);
-        }
+        private static async Task<bool> IsPackageInstalled(Package package) => await ProjectManifest.IsDependencyInstalled(package.Id, package.Version);
 
         public static async Task UpgradeOrInstall(Package packageToInstall, bool interactive)
         {

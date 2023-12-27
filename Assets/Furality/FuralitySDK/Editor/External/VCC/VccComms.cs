@@ -34,7 +34,7 @@ namespace Furality.SDK.External.VCC
                 {
                     response = await client.SendAsync(request);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
                     return null;
                 }

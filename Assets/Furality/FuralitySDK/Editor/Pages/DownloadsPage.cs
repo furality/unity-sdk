@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Furality.SDK.External.Assets;
 using UnityEditor;
@@ -8,7 +9,7 @@ namespace Furality.SDK.Pages
 {
     public class DownloadsPage : MenuPage
     {
-        private PrivilegeCategory[] _categories;
+        private List<PrivilegeCategory> _categories = new List<PrivilegeCategory>();
         private readonly List<IPackageDataSource> _packageDataSources;
         private PrivilegeCategory _currentPage;
 
@@ -16,10 +17,13 @@ namespace Furality.SDK.Pages
         
         public DownloadsPage(MainWindow mainWindow) : base(mainWindow)
         {
+            Debug.Log("Construct DownloadsPage");
             _packageDataSources = new List<IPackageDataSource>
             {
                 MainWindow.Api.FilesApi
             };
+
+            MainWindow.Api.FilesApi.OnLoggedIn += RefreshPage;
         }
 
         private void RefreshPage()
@@ -29,7 +33,7 @@ namespace Furality.SDK.Pages
             _categories = downloads.GroupBy(d => d.Category).OrderBy(p => p.Key).Select(g =>
                 new PrivilegeCategory(FormatString(g.Key.ToString()),
                     g.GroupBy(a => a.AttendanceLevel).OrderBy(g2 => g2.Key).Select(c =>
-                        new AssetClass(FormatString(c.Key.ToString()), c.ToArray(), _packageDataSources)))).ToArray();
+                        new AssetClass(FormatString(c.Key.ToString()), c.ToArray(), _packageDataSources)).ToList())).ToList();
 
             if (_currentPage == null)
                 _currentPage = _categories[0];
@@ -40,12 +44,6 @@ namespace Furality.SDK.Pages
             if (!MainWindow.Api.IsLoggedIn)
             {
                 EditorGUILayout.HelpBox("You must be logged in to download assets. Please log-in using the settings tab", MessageType.Warning);
-                return;
-            }
-
-            if (_categories == null)
-            {
-                RefreshPage();
                 return;
             }
 

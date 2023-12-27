@@ -9,6 +9,8 @@ namespace Furality.SDK.Helpers
 {
     public class UnityPackageImportQueue : IJob
     {
+        public static Action OnImportsFinished = () => { };
+
         private static string[] ImportQueue
         {
             get
@@ -46,6 +48,8 @@ namespace Furality.SDK.Helpers
                 AssetDatabase.StopAssetEditing();
                 AssetDatabase.Refresh();
                 AssetDatabase.AllowAutoRefresh();
+
+                OnImportsFinished();
                 
                 Debug.Log("FINISHED IMPORT DONE");
                 
@@ -58,7 +62,7 @@ namespace Furality.SDK.Helpers
         
         public void CheckQueue()
         {
-            Debug.Log("Checking import queue...");
+            Debug.LogWarning("Checking import queue...");
             
             if (ImportQueue.Length == 0)
                 return;
@@ -67,12 +71,12 @@ namespace Furality.SDK.Helpers
             Debug.Log("Importing package: "+package);
             AssetDatabase.ImportPackage(package, false);
             
-            Debug.Log("Import queue started. Importing "+ImportQueue.Length+" packages.");
+            Debug.LogWarning("Import queue started. Importing "+ImportQueue.Length+" packages.");
         }
         
         public static void Add(string package)
         {
-            Debug.Log("Adding package to import queue: "+package);
+            Debug.LogWarning("Adding package to import queue: "+package);
             ImportQueue = ImportQueue.Concat(new[] { package }).ToArray();
         }
 

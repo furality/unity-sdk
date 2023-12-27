@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using UnityEditor.PackageManager;
 using UnityEngine;
 
 namespace Furality.SDK.External.VCC
 {
     public static class ProjectManifest
     {
+        public static string ProjectId;
+        
         [Serializable]
         public class Dependency
         {
@@ -27,15 +31,30 @@ namespace Furality.SDK.External.VCC
 
         public class ProjectManifestRequest
         {
-            public string projectPath;
+            public string id;
+        }
+
+        [Serializable]
+        private class VCCProject
+        {
+            public string ProjectId;
         }
         
         [ItemCanBeNull]
         public static async Task<ProjectManifestResponse> GetProjectManifest(string projectPath)
         {
+            // First, we get our project ID from path
+            var idResp = await VccComms.Request<VCCProject>($"projects/project?path={projectPath}", "GET");
+            if (idResp == null || !idResp.success)
+            {
+                Debug.LogError($"Failed to get project ID for: {projectPath}");
+                return null;
+            }
+
+            ProjectId = idResp.data.ProjectId;
             var manifestRequest = new ProjectManifestRequest
             {
-                projectPath = projectPath
+                id = idResp.data.ProjectId
             };
             
             var resp =  await VccComms.Request<ProjectManifestResponse>("projects/manifest", "POST", manifestRequest);
@@ -53,12 +72,27 @@ namespace Furality.SDK.External.VCC
         {
             // Get the root of our project, right before the Assets folder including the slash
             var projectPath = Application.dataPath.Substring(0, Application.dataPath.LastIndexOf("/Assets", StringComparison.Ordinal));
+            projectPath = projectPath.Replace("/", "\\");
             // Replace the forward slashes with two backslashes
             var manifest = await GetProjectManifest(projectPath);
-            if (manifest == null)
-                return false;
+            if (manifest != null)
+            {
+                if (manifest.dependencies.Any(d => d.Id == id && d.Version == version))
+                    return true;
+            }
+            
+            // We got this far, and a VCC connection could not be established. Fall back to using UPM
+            var list = Client.List();
+            while (!list.IsCompleted)
+            {
+                Thread.Sleep(10);
+            }
+            if (list.IsCompleted && list.Status == StatusCode.Success)
+            {
+                return list.Result.Any(p => p.name == id && p.version == version);
+            }
 
-            return manifest.dependencies.Any(d => d.Id == id && d.Version == version);
+            return false;
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Furality.SDK.Pages;
+using Furality.SDK.External.VCC;
 using UnityEngine;
 
 namespace Furality.SDK.DependencyResolving
@@ -23,22 +23,9 @@ namespace Furality.SDK.DependencyResolving
             {
                 foreach (var dependency in package.Dependencies)
                 {
-                    // If we've declared this dependency as a package, we need to resolve it as if we were directly installing it.
-                    // This means we also need to install its dependencies.
-                    var foundPackage = MainWindow.Api.FilesApi.FindPackage(dependency.Key);
-                    if (foundPackage != null)
-                    {
-                        if (!await Resolve(foundPackage))
-                        {
-                            return false;
-                        }
-                    }
-                    else
-                    {
-                        if (!await Resolve(dependency.Key, dependency.Value))
-                        {
-                            return false;
-                        }
+                    if (!await Resolve(dependency.Key, dependency.Value)) 
+                    { 
+                        return false;
                     }
                 }
             }
@@ -60,6 +47,13 @@ namespace Furality.SDK.DependencyResolving
 
         public async Task<bool> Resolve(string id, string version)
         {
+            // First, we check that we don't already have this installed
+            if (await ProjectManifest.IsDependencyInstalled(id, version))
+            {
+                Debug.Log($"{id} {version} is already installed!");
+                return true;
+            }
+            
             Debug.Log($"Attempting to resolve {id} {version}");
             foreach (var resolver in Resolvers)
             {
