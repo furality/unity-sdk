@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Furality.SDK.DependencyResolving;
 using Furality.SDK.External.Assets;
 using Furality.SDK.External.VCC;
@@ -15,7 +16,7 @@ namespace Furality.SDK.Helpers
 
         public static void AddProvider(IDependencyProvider provider) => _dr.AddProvider(provider);
         public static async Task<bool> Resolve(Package package) => await _dr.Resolve(package);
-        public static async Task<bool> Resolve(string id, string version) => await _dr.Resolve(id, version);
+        public static async Task<bool> Resolve(string id, Version version) => await _dr.Resolve(id, version);
         
         private static async Task<bool> IsPackageInstalled(Package package) => await ProjectManifest.IsDependencyInstalled(package.Id, package.Version);
 

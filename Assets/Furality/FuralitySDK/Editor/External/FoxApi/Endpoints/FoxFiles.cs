@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Furality.SDK.DependencyResolving;
 using Furality.SDK.External.Api.Models.Files;
 using Furality.SDK.External.Assets;
 using Furality.SDK.Helpers;
+using JetBrains.Annotations;
 using UnityEditor;
 using UnityEngine;
 
@@ -36,7 +38,7 @@ namespace Furality.SDK.External.Api.Endpoints
             return resp?.url?.Replace("media-furality-online.nyc3.digitaloceanspaces.com", "media.furality.online");
         }
         
-        public async Task<bool> Resolve(string id, string version)
+        public async Task<bool> Resolve(string id, Version version)
         {
             // Attempt to presign the download for this ID, if it fails, return false
             var url = await PreSignDownload(id);
@@ -66,7 +68,7 @@ namespace Furality.SDK.External.Api.Endpoints
             return _files;
         }
 
-        public string GetInstalledPackage(string id)
+        [CanBeNull] public Version GetInstalledPackage(string id)
         {
             // Query assetDatabase for any assets with the name {id}.json
             // If there are any, return the first one
@@ -75,8 +77,8 @@ namespace Furality.SDK.External.Api.Endpoints
             if (foundFile.Length == 0) return null;
             
             var path = AssetDatabase.GUIDToAssetPath(foundFile[0]);
-            var json = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
-            return json.text;
+            var versionTxt = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
+            return new Version(versionTxt.text);
         }
     }
 }

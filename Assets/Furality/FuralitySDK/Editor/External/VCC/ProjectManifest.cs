@@ -68,7 +68,7 @@ namespace Furality.SDK.External.VCC
             return resp.data;
         }
 
-        public static async Task<bool> IsDependencyInstalled(string id, string version)
+        public static async Task<bool> IsDependencyInstalled(string id, Version minVersion)
         {
             // Get the root of our project, right before the Assets folder including the slash
             var projectPath = Application.dataPath.Substring(0, Application.dataPath.LastIndexOf("/Assets", StringComparison.Ordinal));
@@ -77,7 +77,7 @@ namespace Furality.SDK.External.VCC
             var manifest = await GetProjectManifest(projectPath);
             if (manifest != null)
             {
-                if (manifest.dependencies.Any(d => d.Id == id && d.Version == version))
+                if (manifest.dependencies.Any(d => d.Id == id && new Version(d.Version) >= minVersion))
                     return true;
             }
             
@@ -89,7 +89,7 @@ namespace Furality.SDK.External.VCC
             }
             if (list.IsCompleted && list.Status == StatusCode.Success)
             {
-                return list.Result.Any(p => p.name == id && p.version == version);
+                return list.Result.Any(p => p.name == id && new Version(p.version) >= minVersion);
             }
 
             return false;

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Furality.SDK.External.Assets;
 using Furality.SDK.Pages;
@@ -20,13 +21,13 @@ namespace Furality.SDK.DependencyResolving
             new FuralityPackage()
             {
                 Id = "com.llealloo.audiolink",
-                Version = "0.3.2",
+                Version = new Version(0, 3, 2),
                 FallbackUrl = 
                     "https://github.com/llealloo/vrc-udon-audio-link/releases/download/0.3.2/AudioLink_0.3.2_minimal.unitypackage"
             },
         };
         
-        public async Task<bool> Resolve(string id, string version)
+        public async Task<bool> Resolve(string id, Version version)
         {
             var package = new TestDataSource().FindPackage(id);
 

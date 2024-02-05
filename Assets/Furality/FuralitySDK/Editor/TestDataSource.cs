@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Furality.SDK.External.Api;
 using Furality.SDK.External.Assets;
+using JetBrains.Annotations;
 using UnityEditor;
 using UnityEngine;
 
@@ -19,12 +20,12 @@ namespace Furality.SDK
                 ImageUrl = "https://media.furality.online/image/f6/Furality_Sylva_Shader_thumb.jpg",
                 Category = "Shaders",
                 ConventionId = "Furality Sylva",
-                Version = "1.3.3",
+                Version = new Version(1, 3, 3),
                 AttendanceLevel = AttendanceLevel.none,
                 IsPublic = true,
-                Dependencies = new Dictionary<string, string>()
+                Dependencies = new Dictionary<string, Version>()
                 {
-                    {"com.llealloo.audiolink", "0.3.2"}
+                    {"com.llealloo.audiolink", new Version(0, 3, 2)}
                 },
                 FallbackUrl = "https://github.com/furality/vcc-furality-sylva-shader/releases/download/1.3.3/com.furality.sylvashader-1.3.3.unitypackage"
             },
@@ -38,8 +39,8 @@ namespace Furality.SDK
                 ImageUrl = "https://media.furality.online/image/f6/Furality_Sylva_First_Class_Asset_Pack.jpg",
                 Category = "Tools",
                 ConventionId = "Furality Sylva",
-                Dependencies = new Dictionary<string, string>(),
-                Version = "1.0.1",
+                Dependencies = new Dictionary<string, Version>(),
+                Version = new Version(1, 0, 1),
                 AttendanceLevel = AttendanceLevel.none,
                 IsPublic = true,
                 FallbackUrl = "https://github.com/furality/unity-sdk/releases/download/1.0.1/com.furality.badgemaker-1.0.1.unitypackage"
@@ -49,7 +50,8 @@ namespace Furality.SDK
         public FuralityPackage FindPackage(string id) => _packages.Find(x => x.Id == id);
         
         public IEnumerable<FuralityPackage> GetPackages() => _packages;
-        public string GetInstalledPackage(string id)
+        
+        [CanBeNull] public Version GetInstalledPackage(string id)
         {
             // Query assetDatabase for any assets with the name {id}.json
             // If there are any, return the first one
@@ -58,8 +60,8 @@ namespace Furality.SDK
             if (foundFile.Length == 0) return null;
             
             var path = AssetDatabase.GUIDToAssetPath(foundFile[0]);
-            var json = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
-            return json.text;
+            var versionTxt = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
+            return new Version(versionTxt.text);
         }
     }
 }

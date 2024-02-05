@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace Furality.SDK.External.Assets
 {
     public interface IPackageDataSource
     {
         IEnumerable<FuralityPackage> GetPackages();  // Returns all packages
-        string GetInstalledPackage(string id);
+        [CanBeNull] Version GetInstalledPackage(string id);
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Furality.SDK.Helpers;
 using Furality.SDK.Pages;
@@ -16,7 +17,7 @@ namespace Furality.SDK.External.Assets
         private List<IPackageDataSource> _packageDataSources;
         private bool _isDownloading;
         private Vector2 _scrollPos;
-        private readonly Dictionary<string, string> _downloadVersionCache = new Dictionary<string, string>();
+        private readonly Dictionary<string, Version> _downloadVersionCache = new Dictionary<string, Version>();
 
         public AssetClass(string name, IEnumerable<FuralityPackage> downloads = null, List<IPackageDataSource> dataSources = null)
         {
@@ -52,12 +53,15 @@ namespace Furality.SDK.External.Assets
                 {
                     if (!_downloadVersionCache.TryGetValue(download.Id, out var installedPackageVersion))
                     {
-                        installedPackageVersion = _packageDataSources
-                            .Select(pds => pds.GetInstalledPackage(download.Id))
-                            .FirstOrDefault(p => !string.IsNullOrEmpty(p));
+                        try
+                        {
+                            installedPackageVersion = _packageDataSources
+                                .Select(pds => pds.GetInstalledPackage(download.Id))
+                                .First(p => p != null);
 
-                        if (!string.IsNullOrEmpty(installedPackageVersion))
                             _downloadVersionCache.Add(download.Id, installedPackageVersion);
+                        }
+                        catch (Exception e) {}
                     }
                 }
             }

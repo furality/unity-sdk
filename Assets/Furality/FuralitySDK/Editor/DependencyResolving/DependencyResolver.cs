@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Furality.SDK.External.VCC;
@@ -40,12 +41,12 @@ namespace Furality.SDK.DependencyResolving
             Directory.CreateDirectory(Path.GetDirectoryName(metaPath));
 
             // Write the file
-            System.IO.File.WriteAllText(metaPath, package.Version);
+            System.IO.File.WriteAllText(metaPath, package.Version.ToString());
             
             return true;
         }
 
-        public async Task<bool> Resolve(string id, string version)
+        public async Task<bool> Resolve(string id, Version version)
         {
             // First, we check that we don't already have this installed
             if (await ProjectManifest.IsDependencyInstalled(id, version))
