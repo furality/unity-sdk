@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Furality.SDK.External.VCC;
+using Furality.SDK.Editor.External.VCC;
 using UnityEngine;
 
 namespace Furality.SDK.DependencyResolving

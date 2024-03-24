@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
-using Furality.SDK.External.VCC;
+using Furality.SDK.Editor.External.VCC;
+using Furality.SDK.Editor.Helpers;
 using UnityEngine;
 
 namespace Furality.SDK.DependencyResolving
@@ -33,15 +33,9 @@ namespace Furality.SDK.DependencyResolving
             
             if (!await Resolve(package.Id, package.Version))
                 return false;
-            
-            Debug.Log("Writing Package: "+package.Id);
-            var metaPath = $"Assets/Furality/{package.Id}.json";
 
-            // Ensure the directory exists
-            Directory.CreateDirectory(Path.GetDirectoryName(metaPath));
-
-            // Write the file
-            System.IO.File.WriteAllText(metaPath, package.Version.ToString());
+            AsyncHelper.EnqueueOnMainThread(() =>
+                PlayerPrefs.SetString("furality:packageVersion:" + package.Id, package.Version.ToString()));
             
             return true;
         }

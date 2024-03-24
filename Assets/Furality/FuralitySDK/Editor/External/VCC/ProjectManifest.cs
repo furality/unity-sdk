@@ -7,7 +7,7 @@ using JetBrains.Annotations;
 using UnityEditor.PackageManager;
 using UnityEngine;
 
-namespace Furality.SDK.External.VCC
+namespace Furality.SDK.Editor.External.VCC
 {
     public static class ProjectManifest
     {

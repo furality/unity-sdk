@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Furality.SDK.External.VCC
+namespace Furality.SDK.Editor.External.VCC
 {
     public static class VccComms
     {

@@ -1,9 +1,8 @@
-﻿using Furality.SDK.External.Api.Models;
-using Furality.SDK.External.Boop;
+﻿using Furality.SDK.External.Boop;
 using UnityEditor;
 using UnityEngine;
 
-namespace Furality.SDK.Pages
+namespace Furality.SDK.Editor.Pages
 {
     public class SettingsPage : MenuPage
     {

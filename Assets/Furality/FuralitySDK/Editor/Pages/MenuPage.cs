@@ -1,4 +1,4 @@
-﻿namespace Furality.SDK.Pages
+﻿namespace Furality.SDK.Editor.Pages
 {
     public abstract class MenuPage
     {

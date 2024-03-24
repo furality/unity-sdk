@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEditor;
 
-namespace Furality.SDK.Helpers
+namespace Furality.SDK.Editor.Helpers
 {
     [InitializeOnLoad]
     public class AsyncHelper

@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Furality.SDK.External.Assets;
 using UnityEditor;
 using UnityEngine;
 
-namespace Furality.SDK.Pages
+namespace Furality.SDK.Editor.Pages
 {
     public class DownloadsPage : MenuPage
     {

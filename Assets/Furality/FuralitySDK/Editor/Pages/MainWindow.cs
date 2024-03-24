@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Furality.SDK.Editor.Helpers;
 using Furality.SDK.External.Api;
 using Furality.SDK.External.Boop;
 using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEngine;
 
-namespace Furality.SDK.Pages
+namespace Furality.SDK.Editor.Pages
 {
     [InitializeOnLoad]
     public class MainWindow : EditorWindow
@@ -88,7 +89,7 @@ namespace Furality.SDK.Pages
 
             _cachedVersion = GetVersion();
             
-            AssetDatabase.importPackageCompleted += (s) => Debug.Log("Package Imported: "+s);
+            AssetDatabase.importPackageCompleted += UnityPackageImportQueue.OnPackageImportComplete;
         }
 
         private void OnGUI()

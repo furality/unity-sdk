@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Furality.SDK.DependencyResolving;
-using Furality.SDK.External.Assets;
-using Furality.SDK.External.VCC;
+using Furality.SDK.Editor.External.VCC;
+using Unity.Jobs;
 using UnityEditor;
 using UnityEngine;
 
-namespace Furality.SDK.Helpers
+namespace Furality.SDK.Editor.Helpers
 {
     // DependencyManager's job is to handle the mixing and matching of our native Furality-style dependencies, 
     // as well as the VCC dependencies.
     public static class DependencyManager
     {
-        private static DependencyResolver _dr = new DependencyResolver();
+        private static DependencyResolver _dr = new();
 
         public static void AddProvider(IDependencyProvider provider) => _dr.AddProvider(provider);
         public static async Task<bool> Resolve(Package package) => await _dr.Resolve(package);
@@ -29,11 +29,9 @@ namespace Furality.SDK.Helpers
 
             try
             {
-                AssetDatabase.DisallowAutoRefresh();
-                AssetDatabase.StartAssetEditing();
                 // It's not installed (or at least the version we want isn't. We need to install it.
                 var success = await _dr.Resolve(packageToInstall);
-                new DownloadHelper().Execute();
+                DownloadHelper.Execute();
             }
             finally
             {

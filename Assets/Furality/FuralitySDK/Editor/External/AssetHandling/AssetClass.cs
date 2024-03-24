@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Furality.SDK.Helpers;
-using Furality.SDK.Pages;
+using Furality.SDK.Editor.Helpers;
 using UnityEditor;
 using UnityEngine;
 
@@ -39,12 +38,12 @@ namespace Furality.SDK.External.Assets
             
             // Set the highest foldout to true
             _foldOutStates[_foldOutStates.Keys.First()] = true;
-            RefreshVersionCache();
+            //RefreshVersionCache();
         }
 
         private void RefreshVersionCache()
         {
-            UnityPackageImportQueue.OnImportsFinished -= RefreshVersionCache;
+            UnityPackageImportQueue.onImportsFinished -= RefreshVersionCache;
             _downloadVersionCache.Clear();
             
             foreach (var category in _downloads)
@@ -95,7 +94,7 @@ namespace Furality.SDK.External.Assets
             AssetDatabase.importPackageCompleted += OnPackageImported;
             AssetDatabase.importPackageCancelled += OnPackageImportCancelled;
             AssetDatabase.importPackageFailed += OnPackageImportFailed;
-            UnityPackageImportQueue.OnImportsFinished += RefreshVersionCache;
+            //UnityPackageImportQueue.onImportsFinished += RefreshVersionCache;
             await DependencyManager.UpgradeOrInstall(package, false);
         }
         
