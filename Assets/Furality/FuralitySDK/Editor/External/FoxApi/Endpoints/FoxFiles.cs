@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Furality.SDK.DependencyResolving;
+using Furality.SDK.Editor.Helpers;
 using Furality.SDK.External.Api.Models.Files;
 using Furality.SDK.External.Assets;
-using Furality.SDK.Helpers;
 using JetBrains.Annotations;
 using UnityEditor;
 using UnityEngine;
@@ -68,17 +68,13 @@ namespace Furality.SDK.External.Api.Endpoints
             return _files;
         }
 
-        [CanBeNull] public Version GetInstalledPackage(string id)
+        public Version GetInstalledPackage(string id)
         {
             // Query assetDatabase for any assets with the name {id}.json
             // If there are any, return the first one
             // If there are none, return nul
-            var foundFile = AssetDatabase.FindAssets($"{id}");
-            if (foundFile.Length == 0) return null;
-            
-            var path = AssetDatabase.GUIDToAssetPath(foundFile[0]);
-            var versionTxt = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
-            return new Version(versionTxt.text);
+            var foundVersion = PlayerPrefs.GetString("furality:packageVersion:" + id);
+            return string.IsNullOrEmpty(foundVersion) ? null : new Version(foundVersion);
         }
     }
 }

@@ -1,90 +1,55 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
-using Unity.Jobs;
 using UnityEditor;
 using UnityEngine;
 
-namespace Furality.SDK.Helpers
+namespace Furality.SDK.Editor.Helpers
 {
-    public class UnityPackageImportQueue : IJob
+    public static class UnityPackageImportQueue
     {
-        public static Action OnImportsFinished = () => { };
+        public static Action onImportsFinished = () => { };
 
-        private static string[] ImportQueue
+        private static readonly SavedState<string[]> ImportQueue = new("importQueue", Array.Empty<string>());
+        private static readonly SavedState<int> FailCount = new("importFailCount");
+        
+        public static void OnPackageImportComplete(string packageName)
         {
-            get
+            ImportQueue.Value = ImportQueue.Value.Skip(1).ToArray();
+            
+            if (ImportQueue.Value.Length == 0)
             {
-                var queueStr = SessionState.GetString("furality:importQueue", "");
-                return string.IsNullOrWhiteSpace(queueStr) ? Array.Empty<string>() : queueStr.Split('\n');
-            }
-            set => SessionState.SetString("furality:importQueue", string.Join("\n", value));
-        }
-
-        private static int SuccessCount
-        {
-            get => SessionState.GetInt("furality:importSuccessCount", 0);
-            set => SessionState.SetInt("furality:importSuccessCount", value);
-        }
-
-        private static int ImportGoal
-        {
-            get => SessionState.GetInt("furality:importGoal", 0);
-            set => SessionState.SetInt("furality:importGoal", value);
-        }
-
-        private void OnPackageImportComplete(string packageName)
-        {
-            SuccessCount++;
-
-            if (SuccessCount == ImportGoal)
-            {
-                AssetDatabase.importPackageCompleted -= OnPackageImportComplete;
+                //AssetDatabase.importPackageCompleted -= OnPackageImportComplete;
                 
-                SuccessCount = 0;
-                ImportGoal = 0;
-                ImportQueue = Array.Empty<string>();
-                
-                AssetDatabase.StopAssetEditing();
-                AssetDatabase.Refresh();
-                AssetDatabase.AllowAutoRefresh();
+                ImportQueue.Value = Array.Empty<string>();
 
-                OnImportsFinished();
+                onImportsFinished();
                 
                 Debug.Log("FINISHED IMPORT DONE");
                 
                 return;
             }
             
-            ImportQueue = ImportQueue.Skip(1).ToArray();
-            CheckQueue();
+            Execute();
         }
-        
-        public void CheckQueue()
+
+        public static void Execute()
         {
             Debug.LogWarning("Checking import queue...");
             
-            if (ImportQueue.Length == 0)
+            if (ImportQueue.Value.Length == 0)
                 return;
             
-            var package = ImportQueue[0];
+            var package = ImportQueue.Value[0];
             Debug.Log("Importing package: "+package);
-            AssetDatabase.ImportPackage(package, false);
+            AsyncHelper.EnqueueOnMainThread(() => AssetDatabase.ImportPackage(package, false));
             
-            Debug.LogWarning("Import queue started. Importing "+ImportQueue.Length+" packages.");
+            Debug.LogWarning("Import queue started. Importing "+ImportQueue.Value.Length+" packages.");
         }
         
         public static void Add(string package)
         {
             Debug.LogWarning("Adding package to import queue: "+package);
-            ImportQueue = ImportQueue.Concat(new[] { package }).ToArray();
-        }
-
-        public void Execute()
-        {
-            AssetDatabase.importPackageCompleted += OnPackageImportComplete;
-            ImportGoal = ImportQueue.Length;
-            CheckQueue();
+            ImportQueue.Value = ImportQueue.Value.Concat(new[] { package }).ToArray();
         }
     }
 }

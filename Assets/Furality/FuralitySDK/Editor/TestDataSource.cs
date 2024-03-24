@@ -6,7 +6,7 @@ using JetBrains.Annotations;
 using UnityEditor;
 using UnityEngine;
 
-namespace Furality.SDK
+namespace Furality.SDK.Editor
 {
     [Obsolete]
     public class TestDataSource : IPackageDataSource
@@ -56,12 +56,8 @@ namespace Furality.SDK
             // Query assetDatabase for any assets with the name {id}.json
             // If there are any, return the first one
             // If there are none, return null
-            var foundFile = AssetDatabase.FindAssets($"{id}");
-            if (foundFile.Length == 0) return null;
-            
-            var path = AssetDatabase.GUIDToAssetPath(foundFile[0]);
-            var versionTxt = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
-            return new Version(versionTxt.text);
+            var foundVersion = PlayerPrefs.GetString("furality:packageVersion:" + id);
+            return string.IsNullOrEmpty(foundVersion) ? null : new Version(foundVersion);
         }
     }
 }

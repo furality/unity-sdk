@@ -1,43 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Unity.Jobs;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Networking;
 
-namespace Furality.SDK.Helpers
+namespace Furality.SDK.Editor.Helpers
 {
-    public class DownloadHelper : IJob
+    public static class DownloadHelper
     {
-        private static readonly Queue<(string id, string url)> _downloadQueue = new Queue<(string, string)>();
-        private static bool _inProgress;
+        private static readonly Queue<(string id, string url)> DownloadQueue = new Queue<(string, string)>();
 
         public static void Enqueue(string id, string url)
         {
             Debug.Log("Enqueueing "+id);
-            _downloadQueue.Enqueue((id, url));
+            DownloadQueue.Enqueue((id, url));
         }
 
-        private static async void DownloadQueue()
+        public static async void Execute()
         {
-            _inProgress = true;
-            while (_downloadQueue.Any())
+            while (DownloadQueue.Any())
             {
-                var (id, url) = _downloadQueue.Dequeue();
-                var path = await DownloadFile(id, url, f => EditorUtility.DisplayProgressBar("Downloading File", id, f));
-                Debug.Log("Downloaaded File path "+path);
+                var (id, url) = DownloadQueue.Dequeue();
+                var path = await DownloadFile(id, url, f => AsyncHelper.EnqueueOnMainThread(() => EditorUtility.DisplayProgressBar("Downloading File", id, f)));
+                Debug.Log("Downloaded File path "+path);
                 if (!string.IsNullOrEmpty(path))
                     UnityPackageImportQueue.Add(path);
                 
-                EditorUtility.ClearProgressBar();
+                AsyncHelper.EnqueueOnMainThread(EditorUtility.ClearProgressBar);
             }
-            
-            new UnityPackageImportQueue().Execute();
-            _inProgress = false;
+
+            UnityPackageImportQueue.Execute();
         }
 
         private static async Task<string> DownloadFile(string id, string url, Action<float> onDownloadProgress)
@@ -45,20 +40,19 @@ namespace Furality.SDK.Helpers
             string path = await AsyncHelper.MainThread(() =>
                 $"{Application.temporaryCachePath}/{id}.unitypackage");
 
-            using (var client = new WebClient())
-            {
-                client.DownloadProgressChanged += (sender, eventArgs) =>
-                    onDownloadProgress.Invoke(eventArgs.ProgressPercentage / 100f);
+            using var client = new WebClient();
+            
+            client.DownloadProgressChanged += (sender, eventArgs) =>
+                onDownloadProgress.Invoke(eventArgs.ProgressPercentage / 100f);
 
-                try
-                {
-                    await client.DownloadFileTaskAsync(url, path);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogWarning($"Error downloading file {id}: {e.Message}");
-                    return null;
-                }
+            try
+            {
+                await client.DownloadFileTaskAsync(url, path);
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"Error downloading file {id}: {e.Message}");
+                return null;
             }
 
             return path;
@@ -74,11 +68,6 @@ namespace Furality.SDK.Helpers
             }
 
             return www.texture;
-        }
-
-        public void Execute()
-        {
-            DownloadQueue();
         }
     }
 }
