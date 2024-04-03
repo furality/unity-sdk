@@ -24,42 +24,39 @@ namespace Furality.SDK.DependencyResolving
             {
                 foreach (var dependency in package.Dependencies)
                 {
-                    if (!await Resolve(dependency.Key, dependency.Value)) 
+                    if (!await Resolve(dependency)) 
                     { 
                         return false;
                     }
                 }
             }
             
-            if (!await Resolve(package.Id, package.Version))
+            // First, we check that we don't already have this installed
+            if (await ProjectManifest.IsDependencyInstalled(package.Id, package.Version))
+            {
+                Debug.Log($"{package.Id} {package.Version} is already installed!");
+                return true;
+            }
+            
+            Debug.Log($"Attempting to resolve {package.Id} {package.Version}");
+            var resolved = false;
+            foreach (var resolver in Resolvers)
+            {
+                if (await resolver.Resolve(package))
+                {
+                    Debug.Log($"Resolved {package.Id} {package.Version} using {resolver.GetType()}");
+                    resolved = true;
+                    break;
+                }
+            }
+
+            if (!resolved)
                 return false;
 
             AsyncHelper.EnqueueOnMainThread(() =>
                 PlayerPrefs.SetString("furality:packageVersion:" + package.Id, package.Version.ToString()));
             
             return true;
-        }
-
-        public async Task<bool> Resolve(string id, Version version)
-        {
-            // First, we check that we don't already have this installed
-            if (await ProjectManifest.IsDependencyInstalled(id, version))
-            {
-                Debug.Log($"{id} {version} is already installed!");
-                return true;
-            }
-            
-            Debug.Log($"Attempting to resolve {id} {version}");
-            foreach (var resolver in Resolvers)
-            {
-                if (await resolver.Resolve(id, version))
-                {
-                    Debug.Log($"Resolved {id} {version} using {resolver.GetType()}");
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 }

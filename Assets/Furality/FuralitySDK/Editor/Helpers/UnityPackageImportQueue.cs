@@ -14,21 +14,29 @@ namespace Furality.SDK.Editor.Helpers
         
         public static void OnPackageImportComplete(string packageName)
         {
+            // wasQueue exists to ensure that we had packages in the queue to start with
+            // if it is false, we can assume this package import was not requested by us
+            bool wasQueue = ImportQueue.Value.Length >= 1;
             ImportQueue.Value = ImportQueue.Value.Skip(1).ToArray();
-            
-            if (ImportQueue.Value.Length == 0)
+
+            if (ImportQueue.Value.Length == 0 && wasQueue)
             {
                 //AssetDatabase.importPackageCompleted -= OnPackageImportComplete;
-                
+
                 ImportQueue.Value = Array.Empty<string>();
 
+                UnityEngine.Object obj =
+                    AssetDatabase.LoadAssetAtPath("Assets/Furality", typeof(UnityEngine.Object));
+
+                EditorGUIUtility.PingObject(obj);
+
                 onImportsFinished();
-                
+
                 Debug.Log("FINISHED IMPORT DONE");
-                
+
                 return;
             }
-            
+
             Execute();
         }
 

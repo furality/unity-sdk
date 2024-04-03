@@ -23,9 +23,9 @@ namespace Furality.SDK.Editor
                 Version = new Version(1, 3, 3),
                 AttendanceLevel = AttendanceLevel.none,
                 IsPublic = true,
-                Dependencies = new Dictionary<string, Version>()
+                Dependencies = new List<Package>()
                 {
-                    {"com.llealloo.audiolink", new Version(0, 3, 2)}
+                    new Package() {Id = "com.llealloo.audiolink", Version = new Version(0, 3, 2)}
                 },
                 FallbackUrl = "https://github.com/furality/vcc-furality-sylva-shader/releases/download/1.3.3/com.furality.sylvashader-1.3.3.unitypackage"
             },
@@ -39,7 +39,7 @@ namespace Furality.SDK.Editor
                 ImageUrl = "https://media.furality.online/image/f6/Furality_Sylva_First_Class_Asset_Pack.jpg",
                 Category = "Tools",
                 ConventionId = "Furality Sylva",
-                Dependencies = new Dictionary<string, Version>(),
+                Dependencies = new List<Package>(),
                 Version = new Version(1, 0, 1),
                 AttendanceLevel = AttendanceLevel.none,
                 IsPublic = true,

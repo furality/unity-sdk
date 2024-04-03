@@ -27,19 +27,19 @@ namespace Furality.SDK.DependencyResolving
             },
         };
         
-        public async Task<bool> Resolve(string id, Version version)
+        public async Task<bool> Resolve(Package packageToResolve)
         {
-            var package = new TestDataSource().FindPackage(id);
+            var package = new TestDataSource().FindPackage(packageToResolve.Id);
 
-            if (package == null) package = _fallbacks.ToList().Find(x => x.Id == id && x.Version == version);
+            if (package == null) package = _fallbacks.ToList().Find(x => x.Id == packageToResolve.Id && x.Version == packageToResolve.Version);
             
             if (package == null || package.FallbackUrl == null)
                 return false;
 
-            string path = await AsyncHelper.MainThread(() => $"{Application.temporaryCachePath}/{id}.unitypackage");
+            string path = await AsyncHelper.MainThread(() => $"{Application.temporaryCachePath}/{packageToResolve.Id}.unitypackage");
                 
             // If the ID is badgemaker, we need to (for now) delete all assets matching the name "Magick.Native-Q8-x64", "Magick.NET-Q8-x64" and "Magick.NET.Core" as they are already incluyded
-            if (id == "com.furality.badgemaker")
+            if (packageToResolve.Id == "com.furality.badgemaker")
             {
                 // Find all assets matching the name
                 var assets = AssetDatabase.FindAssets("Magick.Native-Q8-x64");
@@ -68,7 +68,7 @@ namespace Furality.SDK.DependencyResolving
             {
                 foreach (var dependency in package.Dependencies)
                 {
-                    if (!await DependencyManager.Resolve(dependency.Key, dependency.Value))
+                    if (!await DependencyManager.Resolve(dependency))
                     {
                         return false;
                     }

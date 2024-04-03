@@ -5,6 +5,7 @@ namespace Furality.SDK.DependencyResolving
 {
     public interface IDependencyProvider
     {
-        Task<bool> Resolve(string id, Version version);
+        // Complete all steps necessary to download and install this package
+        Task<bool> Resolve(Package package);
     }
 }

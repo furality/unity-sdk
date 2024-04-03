@@ -37,13 +37,13 @@ namespace Furality.SDK.DependencyResolving
             packageId = packageId
         });
 
-        public async Task<bool> Resolve(string id, Version version)
+        public async Task<bool> Resolve(Package package)
         {
             return await AddPackage(new AddPackageRequest
             {
                 projectId = ProjectManifest.ProjectId,
-                packageId = id,
-                version = version.ToString()
+                packageId = package.Id,
+                version = package.Version.ToString()
             });
         }
     }

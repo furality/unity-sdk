@@ -13,13 +13,7 @@ using UnityEngine;
 namespace Furality.SDK.External.Api.Endpoints
 {
     public class FoxFiles : FoxResource, IDependencyProvider, IPackageDataSource
-    {
-        public class FileResponse
-        {
-            public string file;
-            public string url;
-        }
-
+    { 
         private FoxFileDto[] _files;
 
         public FoxFiles(FoxApi api) : base(api)
@@ -38,15 +32,15 @@ namespace Furality.SDK.External.Api.Endpoints
             return resp?.url?.Replace("media-furality-online.nyc3.digitaloceanspaces.com", "media.furality.online");
         }
         
-        public async Task<bool> Resolve(string id, Version version)
+        public async Task<bool> Resolve(Package package)
         {
             // Attempt to presign the download for this ID, if it fails, return false
-            var url = await PreSignDownload(id);
+            var url = await PreSignDownload(package.Id);
             if (url == null)
                 return false;
 
-            Debug.Log("Downloading Package: " + id);
-            DownloadHelper.Enqueue(id, url);
+            Debug.Log("Downloading Package: " + package.Id);
+            DownloadHelper.Enqueue(package.Id, url);
             return true;
         }
 

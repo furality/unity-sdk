@@ -7,6 +7,6 @@ namespace Furality.SDK
     {
         public virtual string Id { get; set; }
         public virtual Version Version { get; set; }
-        public virtual Dictionary<string, Version> Dependencies { get; set; } = new Dictionary<string, Version>();    // Id, Version
+        public virtual List<Package> Dependencies { get; set; } = new();    // Id, Version
     }
 }

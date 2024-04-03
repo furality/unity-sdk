@@ -27,9 +27,9 @@ namespace Furality.SDK.External.Api.Models.Files
         public override string ConventionId => conventionId;
 
         // Supplementary overrides. This data may not be entirely correct but needs to exist to function properly
-        public override Dictionary<string, Version> Dependencies => new Dictionary<string, Version>
+        public override List<Package> Dependencies => new List<Package>
         {
-            { "com.furality.sylvashader", new Version(1, 3, 3) },
+            new Package() { Id = "com.furality.sylvashader", Version = new Version(1, 3, 3) }
         };
 
         public override Version Version => new Version(1, 0, 0);    //TODO: Have version in the api
