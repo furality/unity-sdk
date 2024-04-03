@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Furality.SDK.Editor.External.FoxApi;
 using Furality.SDK.Editor.Pages;
-using Furality.SDK.External.Api;
 using UnityEditor;
 using UnityEngine;
 
-namespace Furality.SDK.External.Assets
+namespace Furality.SDK.Editor.External.AssetHandling
 {
     public class PrivilegeCategory
     {

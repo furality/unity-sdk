@@ -2,15 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Furality.SDK.DependencyResolving;
+using Furality.SDK.Editor.DependencyResolving.Providers;
+using Furality.SDK.Editor.External.AssetHandling;
+using Furality.SDK.Editor.External.FoxApi.Models.Files;
 using Furality.SDK.Editor.Helpers;
-using Furality.SDK.External.Api.Models.Files;
-using Furality.SDK.External.Assets;
-using JetBrains.Annotations;
-using UnityEditor;
 using UnityEngine;
 
-namespace Furality.SDK.External.Api.Endpoints
+namespace Furality.SDK.Editor.External.FoxApi.Endpoints
 {
     public class FoxFiles : FoxResource, IDependencyProvider, IPackageDataSource
     { 

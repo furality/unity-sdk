@@ -3,7 +3,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace Furality.SDK.External.Boop
+namespace Furality.SDK.Editor.External.Boop
 {
     // Probably violates some http spec requirements, but it doesn't need to that secure given that its only use is for 
     // handling the callback from the browser

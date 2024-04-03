@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Furality.SDK.External.Assets;
+using Furality.SDK.Editor.External.AssetHandling;
 using UnityEditor;
 using UnityEngine;
 

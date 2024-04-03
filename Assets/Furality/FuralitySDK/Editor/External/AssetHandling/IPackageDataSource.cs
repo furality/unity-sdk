@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using JetBrains.Annotations;
 
-namespace Furality.SDK.External.Assets
+namespace Furality.SDK.Editor.External.AssetHandling
 {
     public interface IPackageDataSource
     {

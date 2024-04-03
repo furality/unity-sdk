@@ -1,7 +1,6 @@
 ﻿using System;
-using Furality.SDK.External.Api;
 
-namespace Furality.SDK.External.Boop
+namespace Furality.SDK.Editor.External.Boop.Types
 {
     [Serializable]
     public class UserData

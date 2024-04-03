@@ -5,7 +5,7 @@ using Furality.SDK.Editor.Helpers;
 using UnityEditor;
 using UnityEngine;
 
-namespace Furality.SDK.External.Assets
+namespace Furality.SDK.Editor.External.AssetHandling
 {
     public class AssetClass
     {

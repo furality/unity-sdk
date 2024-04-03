@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Furality.SDK.External.Assets;
+using Furality.SDK.Editor.External.AssetHandling;
 
-namespace Furality.SDK.External.Api.Models.Files
+namespace Furality.SDK.Editor.External.FoxApi.Models.Files
 {
     [Serializable]
     public class FoxFileDto : FuralityPackage

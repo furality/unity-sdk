@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Furality.SDK
+namespace Furality.SDK.Editor.External.AssetHandling
 {
     public class Package
     {

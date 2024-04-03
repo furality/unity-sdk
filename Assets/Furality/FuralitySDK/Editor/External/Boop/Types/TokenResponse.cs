@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Furality.SDK.External.Boop
+namespace Furality.SDK.Editor.External.Boop.Types
 {
     [Serializable]
     public class TokenResponse

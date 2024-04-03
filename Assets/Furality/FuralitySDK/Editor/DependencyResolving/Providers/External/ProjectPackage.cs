@@ -1,9 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using Furality.SDK.Editor.External.AssetHandling;
 using Furality.SDK.Editor.External.VCC;
-using UnityEngine;
 
-namespace Furality.SDK.DependencyResolving
+namespace Furality.SDK.Editor.DependencyResolving.Providers.External
 {
     public class ProjectPackage : IDependencyProvider
     {

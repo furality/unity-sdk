@@ -1,4 +1,4 @@
-﻿namespace Furality.SDK.External.Api.Models.Files
+﻿namespace Furality.SDK.Editor.External.FoxApi.Models.Files
 {
     public class FileResponse
     {

@@ -1,7 +1,7 @@
 ﻿using System;
-using Furality.SDK.External.Api;
+using Furality.SDK.Editor.External.FoxApi;
 
-namespace Furality.SDK.External.Assets
+namespace Furality.SDK.Editor.External.AssetHandling
 {
     public class FuralityPackage : Package
     {

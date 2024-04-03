@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Furality.SDK.Editor.External.Boop;
+using Furality.SDK.Editor.External.FoxApi;
 using Furality.SDK.Editor.Helpers;
-using Furality.SDK.External.Api;
-using Furality.SDK.External.Boop;
 using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEngine;
@@ -13,7 +12,6 @@ namespace Furality.SDK.Editor.Pages
     [InitializeOnLoad]
     public class MainWindow : EditorWindow
     {
-        private readonly Queue<Action> _dispatchQueue = new Queue<Action>();
         private Dictionary<string, MenuPage> _pages = new Dictionary<string, MenuPage>();
         
         private MenuPage _currentPage;

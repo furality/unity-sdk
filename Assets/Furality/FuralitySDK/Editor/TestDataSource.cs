@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using Furality.SDK.External.Api;
-using Furality.SDK.External.Assets;
+using Furality.SDK.Editor.External.AssetHandling;
+using Furality.SDK.Editor.External.FoxApi;
 using JetBrains.Annotations;
 using UnityEditor;
 using UnityEngine;

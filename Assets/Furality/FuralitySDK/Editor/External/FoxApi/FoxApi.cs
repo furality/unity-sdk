@@ -1,12 +1,13 @@
 ﻿using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Furality.SDK.External.Api.Endpoints;
-using Furality.SDK.External.Boop;
+using Furality.SDK.Editor.External.Boop;
+using Furality.SDK.Editor.External.Boop.Types;
+using Furality.SDK.Editor.External.FoxApi.Endpoints;
 using UnityEditor;
 using UnityEngine;
 
-namespace Furality.SDK.External.Api
+namespace Furality.SDK.Editor.External.FoxApi
 {
     public class FoxApi
     {

@@ -1,7 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using Furality.SDK.Editor.External.AssetHandling;
 
-namespace Furality.SDK.DependencyResolving
+namespace Furality.SDK.Editor.DependencyResolving.Providers
 {
     public interface IDependencyProvider
     {

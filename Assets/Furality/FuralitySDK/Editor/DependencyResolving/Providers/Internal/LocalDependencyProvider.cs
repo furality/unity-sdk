@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Furality.SDK.Editor;
+using Furality.SDK.Editor.External.AssetHandling;
 using Furality.SDK.Editor.Helpers;
-using Furality.SDK.External.Assets;
 using UnityEditor;
 using UnityEngine;
 
-namespace Furality.SDK.DependencyResolving
+namespace Furality.SDK.Editor.DependencyResolving.Providers.Internal
 {
     /**
      * Local dependency resolver is responsible for removing our requirement for the VCC.

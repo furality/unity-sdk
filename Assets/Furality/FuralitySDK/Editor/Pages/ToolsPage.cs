@@ -36,8 +36,7 @@ namespace Furality.SDK.Editor.Pages
                 var name = string.Concat(type.Name.Select(x => char.IsUpper(x) ? " " + x : x.ToString())).TrimStart(' ');
                 
                 // Add it to our list of windows (if it doesn't already exist)
-                if (!_windows.ContainsKey(name))
-                    _windows.Add(name, type);
+                _windows.TryAdd(name, type);
             }
         }
 

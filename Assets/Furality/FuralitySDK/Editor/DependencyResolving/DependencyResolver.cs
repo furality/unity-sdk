@@ -1,11 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Furality.SDK.Editor.DependencyResolving.Providers;
+using Furality.SDK.Editor.DependencyResolving.Providers.External;
+using Furality.SDK.Editor.DependencyResolving.Providers.Internal;
+using Furality.SDK.Editor.External.AssetHandling;
 using Furality.SDK.Editor.External.VCC;
 using Furality.SDK.Editor.Helpers;
 using UnityEngine;
 
-namespace Furality.SDK.DependencyResolving
+namespace Furality.SDK.Editor.DependencyResolving
 {
     public class DependencyResolver
     {

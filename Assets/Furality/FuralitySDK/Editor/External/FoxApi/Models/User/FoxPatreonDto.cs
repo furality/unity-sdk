@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Furality.SDK.External.Api.Models.User
+namespace Furality.SDK.Editor.External.FoxApi.Models.User
 {
     [Serializable]
     public class FoxPatreonDto

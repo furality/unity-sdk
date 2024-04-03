@@ -1,11 +1,10 @@
 ﻿using System;
+using Furality.SDK.Editor.External.Boop.Types;
 using Furality.SDK.Editor.Helpers;
-using Furality.SDK.External.Api;
-using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace Furality.SDK.External.Boop
+namespace Furality.SDK.Editor.External.Boop
 {
     // AuthManager is our one port of call for authentication, be it initiating a login or logout, or monitoring our login state
     public static class BoopAuth

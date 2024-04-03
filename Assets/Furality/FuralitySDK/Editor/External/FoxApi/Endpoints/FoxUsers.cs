@@ -1,6 +1,6 @@
-﻿using Furality.SDK.External.Api.Models.User;
+﻿using Furality.SDK.Editor.External.FoxApi.Models.User;
 
-namespace Furality.SDK.External.Api.Endpoints
+namespace Furality.SDK.Editor.External.FoxApi.Endpoints
 {
     public class FoxUsers : FoxResource
     {

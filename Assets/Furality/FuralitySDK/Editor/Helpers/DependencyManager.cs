@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Furality.SDK.DependencyResolving;
+using Furality.SDK.Editor.DependencyResolving;
+using Furality.SDK.Editor.DependencyResolving.Providers;
+using Furality.SDK.Editor.External.AssetHandling;
 using Furality.SDK.Editor.External.VCC;
 using UnityEditor;
 using UnityEngine;

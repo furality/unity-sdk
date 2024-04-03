@@ -1,4 +1,4 @@
-﻿namespace Furality.SDK.External.Api
+﻿namespace Furality.SDK.Editor.External.FoxApi
 {
     public enum PatreonLevel
     {
