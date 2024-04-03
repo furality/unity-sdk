@@ -17,6 +17,7 @@ namespace Furality.SDK.External.Assets
         private bool _isDownloading;
         private Vector2 _scrollPos;
         private readonly Dictionary<string, Version> _downloadVersionCache = new Dictionary<string, Version>();
+        private Package _downloadingPackage;
 
         public AssetClass(string name, IEnumerable<FuralityPackage> downloads = null, List<IPackageDataSource> dataSources = null)
         {
@@ -38,7 +39,7 @@ namespace Furality.SDK.External.Assets
             
             // Set the highest foldout to true
             _foldOutStates[_foldOutStates.Keys.First()] = true;
-            //RefreshVersionCache();
+            RefreshVersionCache();
         }
 
         private void RefreshVersionCache()
@@ -68,8 +69,6 @@ namespace Furality.SDK.External.Assets
 
         private void OnPackageImported(string packageName)
         {
-            Debug.Log("Package Imported: "+packageName);
-            
             _isDownloading = false;
             AssetDatabase.importPackageCompleted -= OnPackageImported;
         }
@@ -83,18 +82,26 @@ namespace Furality.SDK.External.Assets
         
         private void OnPackageImportFailed(string packageName, string errorMessage)
         {
-            Debug.Log("Package Import Failed: "+errorMessage);
             _isDownloading = false;
             AssetDatabase.importPackageFailed -= OnPackageImportFailed;
         }
 
         private async void BeginInstall(FuralityPackage package)
         {
+            // Just so we can keep track of what's happening until domain reload
+            _downloadingPackage = package;
             _isDownloading = true;
+            
+            // These delegates will likely fail upon package import, but even if they do, the relevant variables would
+            // be reset upon domain reload anyway
             AssetDatabase.importPackageCompleted += OnPackageImported;
             AssetDatabase.importPackageCancelled += OnPackageImportCancelled;
             AssetDatabase.importPackageFailed += OnPackageImportFailed;
-            //UnityPackageImportQueue.onImportsFinished += RefreshVersionCache;
+            
+            // When we finish importing everything, we need to rescan currently installed versions
+            UnityPackageImportQueue.onImportsFinished += RefreshVersionCache;
+            
+            // Finally, begin the package import flow
             await DependencyManager.UpgradeOrInstall(package, false);
         }
         
@@ -165,15 +172,16 @@ namespace Furality.SDK.External.Assets
                             }
                             else
                             {
+                                bool prevEnable = GUI.enabled;
                                 GUI.enabled = false;
                                 GUILayout.Button("Installed");
-                                GUI.enabled = !_isDownloading;
+                                GUI.enabled = prevEnable;
                             }
                         }
                         else
                         {
                             // Render the download button
-                            if (GUILayout.Button(_isDownloading ? "Installing" : "Download"))
+                            if (GUILayout.Button(_downloadingPackage == download ? "Installing" : "Download"))
                             {
                                 BeginInstall(download);
                             }
