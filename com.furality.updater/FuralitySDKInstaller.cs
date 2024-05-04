@@ -35,7 +35,7 @@ using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEngine;
 
-//[InitializeOnLoad]
+[InitializeOnLoad]
 public class FuralitySDKInstaller { 
     
     private static readonly HttpClient HttpClient = new HttpClient();
