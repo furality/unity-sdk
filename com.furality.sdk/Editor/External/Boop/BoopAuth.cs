@@ -23,14 +23,15 @@ namespace Furality.SDK.Editor.External.Boop
 
         public static TokenResponse AttemptCachedLogin()
         {
+            if (!PlayerPrefs.HasKey("boop.refresh_token")) return null;
+            
             // Attempt to use cached credentials
-            var expiry = PlayerPrefs.GetInt("boop.expires_at");
+            /*var expiry = PlayerPrefs.GetInt("boop.expires_at");
             // If we have a refresh token and it hasn't expired, use it
             DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            dateTime = dateTime.AddSeconds( expiry ).ToLocalTime();
-            if (DateTime.Now >= dateTime || !PlayerPrefs.HasKey("boop.refresh_token")) return null;
+            dateTime = dateTime.AddSeconds( expiry ).ToLocalTime();*/
             
-            Debug.Log("Cached refresh token is still valid, using it to log in");
+            Debug.Log("Using cached refresh token to log in");
             var refreshToken = PlayerPrefs.GetString("boop.refresh_token");
             return ExchangeToken("refresh_token", refreshToken);
         }
