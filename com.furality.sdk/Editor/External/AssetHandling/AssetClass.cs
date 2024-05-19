@@ -160,22 +160,12 @@ namespace Furality.SDK.Editor.External.AssetHandling
     
                         // Check if the version is cached. If not, add it to the cache
                         //TODO: Move this to a delegate so it only gets run after package install or on construct
-                        
+
                         if (_downloadVersionCache.TryGetValue(download.Id, out var installedPackageVersion))
                         {
-                            if (download.Version != installedPackageVersion)
+                            if (GUILayout.Button(download.Version != installedPackageVersion ? "Upgrade" : "Reinstall"))
                             {
-                                if (GUILayout.Button("Upgrade"))
-                                {
-                                    BeginInstall(download);
-                                }
-                            }
-                            else
-                            {
-                                bool prevEnable = GUI.enabled;
-                                GUI.enabled = false;
-                                GUILayout.Button("Installed");
-                                GUI.enabled = prevEnable;
+                                BeginInstall(download);
                             }
                         }
                         else
