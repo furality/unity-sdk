@@ -85,7 +85,7 @@ namespace Furality.SDK.Editor.Updater
                 !HasLocalDirectoryFuralityPackage())
             {
                 var tempFile = await AsyncHelper.MainThread(FileUtil.GetUniqueTempPathInProject) + ".zip";
-                var url = "https://github.com/furality/unity-sdk/releases/latest/download/com.furality.sdk.zip";
+                var url = remotePackage.downloadUrl; //"https://github.com/furality/unity-sdk/releases/latest/download/com.furality.sdk.zip";
                 try
                 {
                     using (var response = await HttpClient.GetAsync(url))
