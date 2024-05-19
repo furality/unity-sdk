@@ -27,10 +27,28 @@ namespace Furality.SDK.Editor.External.FoxApi.Models.Files
         public override string ConventionId => conventionId;
 
         // Supplementary overrides. This data may not be entirely correct but needs to exist to function properly
-        public override List<Package> Dependencies => new List<Package>
+        public override List<Package> Dependencies
         {
-            new Package() { Id = "com.furality.sylvashader", Version = new Version(1, 3, 3) }
-        };
+            get
+            {
+                switch (ConventionId)
+                {
+                    case "furality06":
+                        return new List<Package>
+                        {
+                            new Package() { Id = "com.furality.sylvashader", Version = new Version(1, 3, 3) }
+                        };
+                    
+                    case "furality07":
+                        return new List<Package>
+                        {
+                            new Package() { Id = "com.furality.umbrashader", Version = new Version(1, 6, 0) }
+                        };
+                }
+
+                return new List<Package>();
+            }
+        }
 
         public override Version Version => new Version(1, 0, 0);    //TODO: Have version in the api
     }

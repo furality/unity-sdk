@@ -12,6 +12,7 @@ namespace Furality.SDK.Editor
     public class TestDataSource : IPackageDataSource
     {
         private readonly List<FuralityPackage> _packages = new List<FuralityPackage>() {
+            // Shaders
             new FuralityPackage()
             {
                 Id = "com.furality.sylvashader",
@@ -28,6 +29,23 @@ namespace Furality.SDK.Editor
                     new Package() {Id = "com.llealloo.audiolink", Version = new Version(0, 3, 2)}
                 },
                 FallbackUrl = "https://github.com/furality/vcc-furality-sylva-shader/releases/download/1.3.3/com.furality.sylvashader-1.3.3.unitypackage"
+            },
+            new FuralityPackage()
+            {
+                Id = "com.furality.umbrashader",
+                Name = "Umbra Shader",
+                Description = "Furality Umbra Avatar Shader for VRChat. Created by Naito @ Furality, Inc.",
+                ImageUrl = "https://media.furality.online/image/f6/Furality_Sylva_Shader_thumb.jpg",
+                Category = "Shaders",
+                ConventionId = "Furality Umbra",
+                Version = new Version(1, 6, 0),
+                AttendanceLevel = AttendanceLevel.none,
+                IsPublic = true,
+                Dependencies = new List<Package>()
+                {
+                    new Package() {Id = "com.llealloo.audiolink", Version = new Version(0, 3, 2)}
+                },
+                FallbackUrl = "https://github.com/furality/vcc-furality-umbra-shader/releases/download/1.6.0/com.furality.umbrashader-1.6.0.unitypackage"
             },
             
             // Badges
