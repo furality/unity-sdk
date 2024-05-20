@@ -13,6 +13,10 @@ namespace Furality.SDK.Editor.Pages
         
         public ToolsPage(MainWindow mainWindow) : base(mainWindow)
         {
+        }
+
+        public override void BeforeDraw()
+        {
             // Get all namespaces present under the Furality.Editor.Tools namespace under all assemblies
             var namespaces = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly => assembly.GetTypes())

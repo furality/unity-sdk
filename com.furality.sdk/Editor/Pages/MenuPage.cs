@@ -10,5 +10,7 @@
         }
         
         public abstract void Draw();
+
+        public abstract void BeforeDraw();
     }
 }

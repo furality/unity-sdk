@@ -1,0 +1,19 @@
+{
+    "name": "BadgeMaker",
+    "rootNamespace": "Furality.Editor.Tools.BadgeMaker",
+    "references": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Magick.NET-Q8-x64.dll",
+        "Magick.NET.Core.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

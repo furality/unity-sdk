@@ -38,6 +38,11 @@ namespace Furality.SDK.Editor.Pages
                 _currentPage = _categories[0];
         }
 
+        public override void BeforeDraw()
+        {
+            RefreshPage();
+        }
+
         public override void Draw()
         {
             if (!MainWindow.Api.IsLoggedIn)

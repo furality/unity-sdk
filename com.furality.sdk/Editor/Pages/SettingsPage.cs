@@ -12,8 +12,8 @@ namespace Furality.SDK.Editor.Pages
         public SettingsPage(MainWindow mainWindow) : base(mainWindow)
         {
         }
-        
-        public override void Draw()
+
+        public override void BeforeDraw()
         {
             _guiStyle ??= new GUIStyle(GUI.skin.box)
             {
@@ -26,7 +26,10 @@ namespace Furality.SDK.Editor.Pages
                 alignment = TextAnchor.MiddleCenter,
                 padding = new RectOffset(10, 10, 10, 10)
             };
-            
+        }
+        
+        public override void Draw()
+        {
             _authExpanded = EditorGUILayout.Foldout(_authExpanded, "Authentication");
 
             if (!_authExpanded) return;

@@ -58,10 +58,10 @@ namespace Furality.SDK.Editor
                 Category = "Tools",
                 ConventionId = "Furality Sylva",
                 Dependencies = new List<Package>(),
-                Version = new Version(1, 0, 1),
+                Version = new Version(1, 1, 0),
                 AttendanceLevel = AttendanceLevel.none,
                 IsPublic = true,
-                FallbackUrl = "https://github.com/furality/unity-sdk/releases/download/1.0.1/com.furality.badgemaker-1.0.1.unitypackage"
+                FallbackUrl = "https://github.com/furality/unity-sdk/releases/download/1.1.0/com.furality.badgemaker-1.1.0.unitypackage"
             },
         };
         

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Furality.SDK.Editor.External.AssetHandling;
+using NUnit.Framework;
 
 namespace Furality.SDK.Editor.External.FoxApi.Models.Files
 {
@@ -31,22 +32,24 @@ namespace Furality.SDK.Editor.External.FoxApi.Models.Files
         {
             get
             {
+                var list = new List<Package>();
+                if (Category == "badge")
+                {
+                    list.Add(new Package() { Id = "com.furality.badgemaker", Version = new Version(1, 1, 0) });
+                }
+                
                 switch (ConventionId)
                 {
                     case "furality06":
-                        return new List<Package>
-                        {
-                            new Package() { Id = "com.furality.sylvashader", Version = new Version(1, 3, 3) }
-                        };
+                        list.Add(new Package() { Id = "com.furality.sylvashader", Version = new Version(1, 3, 3) });
+                        break;
                     
                     case "furality07":
-                        return new List<Package>
-                        {
-                            new Package() { Id = "com.furality.umbrashader", Version = new Version(1, 6, 0) }
-                        };
+                        list.Add(new Package() { Id = "com.furality.umbrashader", Version = new Version(1, 6, 0)});
+                        break;
                 }
 
-                return new List<Package>();
+                return list;
             }
         }
 

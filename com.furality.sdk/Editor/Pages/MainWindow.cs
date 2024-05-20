@@ -74,8 +74,8 @@ namespace Furality.SDK.Editor.Pages
             _pages = new Dictionary<string, MenuPage>
             {
                 { "Assets", new DownloadsPage(this) },
-                { "Settings", new SettingsPage(this) },
-                { "Help", new ToolsPage(this) }
+                { "Tools", new ToolsPage(this) },
+                { "Settings", new SettingsPage(this) }
             };
             
             if (_currentPage == null)
@@ -112,10 +112,13 @@ namespace Furality.SDK.Editor.Pages
             {
                 bool isSelected = page.Value == _currentPage;
                 if (isSelected)
-                    GUI.color = new Color(1.2f, 1.2f, 1.2f); 
-                    
+                    GUI.color = new Color(1.2f, 1.2f, 1.2f);
+
                 if (GUILayout.Button(page.Key.Replace("Page", ""), GUILayout.ExpandWidth(true)))
+                {
+                    page.Value.BeforeDraw();
                     _currentPage = page.Value;
+                }
 
                 if (isSelected)
                     GUI.color = Color.white;
