@@ -43,7 +43,7 @@ namespace Furality.SDK.Editor.Pages
             {
                 // Wait for the query to complete
             }
-            var package = list.Result.FirstOrDefault(p => p.name == "org.furality.sdk");
+            var package = list.Result.FirstOrDefault(p => p.name == "com.furality.sdk");
             if (package == null)
                 return "Unknown Version";
             
