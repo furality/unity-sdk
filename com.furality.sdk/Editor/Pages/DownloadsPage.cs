@@ -19,7 +19,8 @@ namespace Furality.SDK.Editor.Pages
             Debug.Log("Construct DownloadsPage");
             _packageDataSources = new List<IPackageDataSource>
             {
-                MainWindow.Api.FilesApi
+                MainWindow.Api.FilesApi,
+                new LocalDataSource()
             };
 
             MainWindow.Api.FilesApi.OnLoggedIn += RefreshPage;
