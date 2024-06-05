@@ -24,11 +24,13 @@ namespace Furality.Editor.Tools.BadgeMaker
             }}
         };
  
-       [DllImport("Gdi32.dll")]
+        [DllImport("Gdi32.dll")]
         private static extern int AddFontResourceEx(string lpFileName, uint fl, IntPtr pdv);
 
         [DllImport("Gdi32.dll")]
         private static extern bool RemoveFontResourceEx(string lpFileName, uint fl, IntPtr pdv);
+        
+        private static readonly char[] InvalidFileNameChars = Path.GetInvalidFileNameChars();
         
         private string _badgeName = "Your Name";
         private string _pronouns = "Title/Pronouns";
@@ -148,7 +150,7 @@ namespace Furality.Editor.Tools.BadgeMaker
                 string outPath = folderPath + "Custom/";
                 if (!System.IO.Directory.Exists(outPath))
                     System.IO.Directory.CreateDirectory(outPath);
-                outPath += "CUSTOM_" + _badgeName;
+                outPath += "CUSTOM_" + new string(_badgeName.Where(ch => !InvalidFileNameChars.Contains(ch)).ToArray());
 
                 string titleFontPath = Path.Combine(Application.dataPath,
                     "Furality\\BadgeMaker\\Editor\\f7-font.bean");
