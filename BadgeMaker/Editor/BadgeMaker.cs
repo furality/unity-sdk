@@ -1,4 +1,4 @@
-﻿// Copyright Furality, Inc. 2024
+﻿// Copyright Furality, Inc. 2025
 
 using System;
 using System.Collections.Generic;
@@ -16,12 +16,24 @@ namespace Furality.Editor.Tools.BadgeMaker
     {
         private static readonly Dictionary<string, Dictionary<string, MagickColor>> ConventionsToColors = new Dictionary<string, Dictionary<string, MagickColor>>()
         {
-            {"Furality Umbra", new Dictionary<string, MagickColor>()
             {
-                {"Attendee", new MagickColor("#37ff79")},
-                {"First Class", new MagickColor("#fe3fff")},
-                {"Sponsor", new MagickColor("#ffce49")}
-            }}
+                "Furality Umbra", new Dictionary<string, MagickColor>()
+                {
+                    {"Attendee", new MagickColor("#37ff79")},
+                    {"First Class", new MagickColor("#fe3fff")},
+                    {"Sponsor", new MagickColor("#ffce49")}
+                }
+            },
+            {
+                "Furality Somna", new Dictionary<string, MagickColor>()
+                {
+                    {"Attendee", new MagickColor("#ffeead")},
+                    {"First Class", new MagickColor("#ffeead")},
+                    {"Sponsor", new MagickColor("#ffeead")},
+                    {"Dream Maker", new MagickColor("#ffeead")},
+                    {"Team", new MagickColor("#ffeead")}
+                }
+            },
         };
  
         [DllImport("Gdi32.dll")]
@@ -30,8 +42,6 @@ namespace Furality.Editor.Tools.BadgeMaker
         [DllImport("Gdi32.dll")]
         private static extern bool RemoveFontResourceEx(string lpFileName, uint fl, IntPtr pdv);
         
-        private static readonly char[] InvalidFileNameChars = Path.GetInvalidFileNameChars();
-        
         private string _badgeName = "Your Name";
         private string _pronouns = "Title/Pronouns";
         private int _badgeTier = -1;
@@ -39,12 +49,12 @@ namespace Furality.Editor.Tools.BadgeMaker
         private bool _applyToMaterial = true;
 
         // Name Bounds
-        private const int NameX = 2048, NameY = 1504;
-        private const int NameWidth = 3208, NameHeight = 855;
+        private const int NameX = 375, NameY = 700;
+        private const int NameWidth = 610, NameHeight = 150;
 
         // Pronouns Bounds
-        private const int PronounsX = 2048, PronounsY = 1917;
-        private const int PronounsWidth = 1554, PronounsHeight = 257;
+        private const int PronounsX = 450, PronounsY = 810;
+        private const int PronounsWidth = 449, PronounsHeight = 75;
 
         private string FontPath => Application.persistentDataPath + "/Fonts/";
 
@@ -73,6 +83,39 @@ namespace Furality.Editor.Tools.BadgeMaker
         string MakeBadgeFolder(string convention, string tier) =>
             "Assets/Furality/" + convention + "/Avatar Assets/Badges/" + tier;
 
+        void LoadFonts()
+        {
+            string titleFontPath = Path.Combine(Application.dataPath,
+                "Furality\\BadgeMaker\\Editor\\f8-font.bean");
+            titleFontPath = titleFontPath.Replace('/', '\\');
+                
+            string pronounsFontPath = Path.Combine(Application.dataPath,
+                "Furality\\BadgeMaker\\Editor\\f8-font.bean");
+            pronounsFontPath = titleFontPath.Replace('/', '\\');
+
+            // Ensure the font path exists and copy it to there, while ensuring the new name matches the FontName
+            if (!System.IO.Directory.Exists(FontPath))
+                System.IO.Directory.CreateDirectory(FontPath);
+
+            UnloadFonts();
+                
+            // Copy the file over
+            File.Copy(
+                Path.Combine(Application.dataPath, "Furality\\BadgeMaker\\Editor\\f8-font.bean"),
+                FontPath + TitleFontName, true);
+            File.Copy(
+                Path.Combine(Application.dataPath, "Furality\\BadgeMaker\\Editor\\f8-font.bean"),
+                FontPath + PronounsFontName, true);
+
+            int returnFontSize = AddFontResourceEx(FontPath + TitleFontName, 0, IntPtr.Zero);
+            if (returnFontSize == 0)
+                Debug.LogError("Failed to add font resource: " + FontPath + TitleFontName);
+                
+            returnFontSize = AddFontResourceEx(FontPath + PronounsFontName, 0, IntPtr.Zero);
+            if (returnFontSize == 0)
+                Debug.LogError("Failed to add font resource: " + FontPath + PronounsFontName);
+        }
+        
         void OnGUI()
         { 
             GUILayout.BeginHorizontal();
@@ -141,84 +184,87 @@ namespace Furality.Editor.Tools.BadgeMaker
                 EditorUtility.DisplayProgressBar("Creating Badge", "Loading Font...", 0.125f);
 
                 // get the path to the currently selected folder + Textures
-                string folderPath = MakeBadgeFolder(conventionNames[_badgeConvention], tierNames[_badgeTier]) + "/Textures/";
+                string folderPath = System.IO.Path.Combine(MakeBadgeFolder(conventionNames[_badgeConvention], tierNames[_badgeTier]), "Textures");
 
                 // By default (pin), we just need to select image name tierName+_Empty.png
-                string fileName = "Badge " + Regex.Replace(tierNames[_badgeTier], @"\s+", "");
+                string fileName = "Badge" + Regex.Replace(tierNames[_badgeTier], @"\s+", "");
                 
                 // Create a save path and ensure the folder exists. We want the image to be saved in a folder named "Custom" relative to the original image
-                string outPath = folderPath + "Custom/";
+                string outPath = System.IO.Path.Combine(folderPath, "Custom");
                 if (!System.IO.Directory.Exists(outPath))
                     System.IO.Directory.CreateDirectory(outPath);
-                outPath += "CUSTOM_" + new string(_badgeName.Where(ch => !InvalidFileNameChars.Contains(ch)).ToArray());
+                outPath += "CUSTOM_" + _badgeName;
 
-                string titleFontPath = Path.Combine(Application.dataPath,
-                    "Furality\\BadgeMaker\\Editor\\f7-font.bean");
-                // Convert fontpath to only have backslashes
-                titleFontPath = titleFontPath.Replace('/', '\\');
+                LoadFonts();
                 
-                string pronounsFontPath = Path.Combine(Application.dataPath,
-                    "Furality\\BadgeMaker\\Editor\\f7-font.bean");
-                // Convert fontpath to only have backslashes
-                pronounsFontPath = titleFontPath.Replace('/', '\\');
-
-                // Ensure the font path exists and copy it to there, while ensuring the new name matches the FontName
-                if (!System.IO.Directory.Exists(FontPath))
-                    System.IO.Directory.CreateDirectory(FontPath);
-
-                UnloadFonts();
-                
-                // Copy the file over
-                File.Copy(
-                    Path.Combine(Application.dataPath, "Furality\\BadgeMaker\\Editor\\f7-font.bean"),
-                    FontPath + TitleFontName, true);
-                File.Copy(
-                    Path.Combine(Application.dataPath, "Furality\\BadgeMaker\\Editor\\f7-font.bean"),
-                    FontPath + PronounsFontName, true);
-
-                int returnFontSize = AddFontResourceEx(FontPath + TitleFontName, 0, IntPtr.Zero);
-                if (returnFontSize == 0)
-                    Debug.LogError("Failed to add font resource: " + FontPath + TitleFontName);
-                
-                returnFontSize = AddFontResourceEx(FontPath + PronounsFontName, 0, IntPtr.Zero);
-                if (returnFontSize == 0)
-                    Debug.LogError("Failed to add font resource: " + FontPath + PronounsFontName);
-
                 EditorUtility.DisplayProgressBar("Creating Badge", "Creating Name Text...", 0.25f);
 
                 MagickImage nameImage = null;
                 MagickImage pronounsImage = null;
-                
+
+                MagickImage nameImageWhite = null;
+                MagickImage pronounsImageWhite = null;
+
                 if (!string.IsNullOrEmpty(_badgeName))
-                    nameImage = FindFontSize(FontPath + TitleFontName, _badgeName, NameWidth, NameHeight, textColor);
+                {
+                    var fontFamily = System.IO.Path.Combine(FontPath, TitleFontName);
+                    nameImage = FindFontSize(fontFamily, _badgeName, NameWidth, NameHeight, textColor);
+                    nameImageWhite = FindFontSize(fontFamily, _badgeName, NameWidth, NameHeight, new MagickColor("#ffffff"));
+                }
 
                 EditorUtility.DisplayProgressBar("Creating Badge", "Creating Title Text...", 0.175f);
 
                 if (!string.IsNullOrEmpty(_pronouns))
-                    pronounsImage = FindFontSize(FontPath + PronounsFontName, _pronouns, PronounsWidth, PronounsHeight, textColor);
+                {
+                    pronounsImage = FindFontSize(System.IO.Path.Combine(FontPath, PronounsFontName), _pronouns, PronounsWidth, PronounsHeight,
+                        new MagickColor("#ffffff"));
+                    pronounsImageWhite = pronounsImage; // We can reuse the image because the pronouns are always white anyway
+                }
 
                 EditorUtility.DisplayProgressBar("Creating Badge", "Compositing main texture...", 0.5f);
 
                 // Create the badge
-                // DISABLED FOR UMBRA
-                //CreateBadge(folderPath + fileName + ".png", nameImage, pronounsImage, outPath + ".png");
+                CreateBadge(folderPath + fileName + "_DIF.png", nameImage, pronounsImage, outPath + ".png");
 
                 EditorUtility.DisplayProgressBar("Creating Badge", "Compositing emission texture...", 0.625f);
 
-                // Another for the emission
-                CreateBadge(folderPath + fileName + "_EMI_BLANK.png", nameImage, pronounsImage, outPath + "_EMI_BLANK.png");
+                // Another for the metallic
+                CreateBadge(folderPath + "Others/Material.001_Metallic.png", nameImageWhite, pronounsImageWhite, outPath + "_Metallic.png");
 
+                // Now construct a new masks texture using the generated metallic alpha combined with the GBA of the existing masks targa
+                using (MagickImage baseImage = new MagickImage(outPath + "_Metallic.png"))
+                using (MagickImage maskImage = new MagickImage(folderPath + fileName + "_MASKS.tga"))
+                {
+                    maskImage.Flip();   // God literally why do I need to do this
+                    
+                    var separated = maskImage.Separate().ToList();
+
+                    var newMaskImage = new MagickImageCollection()
+                    {
+                        baseImage,
+                        separated[1],
+                        separated[2],
+                        separated[3],
+                    };
+                    
+                    using (var output = newMaskImage.Combine())
+                    {
+                        output.Write(outPath + "_MASK.png");;
+                    }
+                }
+                
                 AssetDatabase.Refresh();
 
                 EditorUtility.DisplayProgressBar("Creating Badge", "Applying mipmaps...", 0.75f);
 
                 // Apply mipmaps
-                //TextureImporter importer = AssetImporter.GetAtPath(outPath + ".png") as TextureImporter;
-                //importer.streamingMipmaps = true;
-                //importer.SaveAndReimport();
-                TextureImporter importer = AssetImporter.GetAtPath(outPath + "_EMI_BLANK.png") as TextureImporter;
+                TextureImporter importer = AssetImporter.GetAtPath(outPath + ".png") as TextureImporter;
                 importer.streamingMipmaps = true;
                 importer.SaveAndReimport();
+                TextureImporter metallicImporter = AssetImporter.GetAtPath(outPath + "_MASK.png") as TextureImporter;
+                metallicImporter.streamingMipmaps = true;
+                metallicImporter.sRGBTexture = false;   // Messes with colors n stuff
+                metallicImporter.SaveAndReimport();
 
                 if (_applyToMaterial)
                 {
@@ -226,14 +272,14 @@ namespace Furality.Editor.Tools.BadgeMaker
 
                     // Find the material named Attendee in the folders[_badgeTier]+Materials folder
                     Material material =
-                        AssetDatabase.LoadAssetAtPath<Material>($"{MakeBadgeFolder(conventionNames[_badgeConvention], tierNames[_badgeTier])}/Materials/Badge{ Regex.Replace(tierNames[_badgeTier], @"\s+", "")}.mat");
+                        AssetDatabase.LoadAssetAtPath<Material>($"{MakeBadgeFolder(conventionNames[_badgeConvention], tierNames[_badgeTier])}/Material/Badge{ Regex.Replace(tierNames[_badgeTier], @"\s+", "")}.mat");
                     // Load the new texture
-                    //Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(outPath + ".png");
-                    Texture2D emission = AssetDatabase.LoadAssetAtPath<Texture2D>(outPath + "_EMI_BLANK.png");
+                    Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(outPath + ".png");
+                    Texture2D mask = AssetDatabase.LoadAssetAtPath<Texture2D>(outPath + "_MASK.png");
                     // Set the texture to the material
-                    //material.SetTexture("_MainTex", texture);
-                    //material.SetTexture("_EffectMask", texture);
-                    material.SetTexture("_EmissionMap", emission);
+                    material.SetTexture("_MainTex", texture);
+                    material.SetTexture("_MaskMap01", mask);
+                    //material.SetTexture("_EmissionMap", emission);
                     // Save the material
                     AssetDatabase.SaveAssets();
                 }
@@ -270,9 +316,8 @@ namespace Furality.Editor.Tools.BadgeMaker
                 /*image.Draw(new DrawableStrokeColor(MagickColors.Red));
                 image.Draw(new DrawableFillColor(MagickColors.Transparent));
                 image.Draw(new DrawableRectangle(NameX - NameWidth / 2, NameY - NameHeight / 2, NameX + NameWidth / 2, NameY + NameHeight / 2));
-                image.Draw(new DrawableRectangle(PronounsX - PronounsWidth / 2, PronounsY - PronounsHeight / 2, PronounsX + PronounsWidth / 2, PronounsY + PronounsHeight / 2));
-    */
-
+                image.Draw(new DrawableRectangle(PronounsX - PronounsWidth / 2, PronounsY - PronounsHeight / 2, PronounsX + PronounsWidth / 2, PronounsY + PronounsHeight / 2));*/
+                
                 if (nameImage != null)
                 {
                     // Figure out the position to draw the text given its current size and the fact NameX and NameY are where we want the center of the text to be
