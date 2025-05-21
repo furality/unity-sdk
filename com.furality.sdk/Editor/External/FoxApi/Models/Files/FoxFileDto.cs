@@ -47,6 +47,10 @@ namespace Furality.SDK.Editor.External.FoxApi.Models.Files
                     case "furality07":
                         list.Add(new Package() { Id = "com.furality.umbrashader", Version = new Version(1, 6, 0)});
                         break;
+                    
+                    case "furality08":
+                        list.Add(new Package() { Id = "com.furality.somnashader", Version = new Version(1, 0, 2)});
+                        break;
                 }
 
                 return list;

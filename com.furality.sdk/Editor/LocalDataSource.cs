@@ -11,7 +11,23 @@ namespace Furality.SDK.Editor
     {
         private readonly List<FuralityPackage> _packages = new List<FuralityPackage>() {
             // Shaders
-            
+            new FuralityPackage()
+            {
+                Id = "com.furality.somnashader",
+                Name = "Somna Shader",
+                Description = "Furality Somna Avatar Shader for VRChat. Created by Naito @ Furality, Inc.",
+                ImageUrl = "https://media.cdn.furality.online/files/web/logo/furality-umbra-logo-md.png",
+                Category = "Shaders",
+                ConventionId = "Furality Somna",
+                Version = new Version(1, 0, 2),
+                AttendanceLevel = AttendanceLevel.none,
+                IsPublic = true,
+                Dependencies = new List<Package>()
+                {
+                    new Package() {Id = "com.llealloo.audiolink", Version = new Version(2, 1, 0)}
+                },
+                FallbackUrl = "https://github.com/furality/vcc-furality-somna-shader/releases/download/1.0.2/com.furality.somnashader-1.0.2.unitypackage"
+            },
             new FuralityPackage()
             {
                 Id = "com.furality.umbrashader",
