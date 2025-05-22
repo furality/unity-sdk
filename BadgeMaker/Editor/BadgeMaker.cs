@@ -38,6 +38,7 @@ namespace Furality.Editor.Tools.BadgeMaker
 
         private static readonly int MainTex = Shader.PropertyToID("_MainTex");
         private static readonly int MaskMap01 = Shader.PropertyToID("_MaskMap01");
+        private static readonly int EmissionMap = Shader.PropertyToID("_EmissionMap");
 
         [DllImport("Gdi32.dll")]
         private static extern int AddFontResourceEx(string lpFileName, uint fl, IntPtr pdv);
@@ -94,8 +95,15 @@ namespace Furality.Editor.Tools.BadgeMaker
         private void UnloadAndDeleteFontIfExists(string path)
         {
             if (!File.Exists(path)) return;
-            RemoveFontResourceEx(path, 0, IntPtr.Zero);
-            File.Delete(path);
+
+            try
+            {
+                RemoveFontResourceEx(path, 0, IntPtr.Zero);
+                File.Delete(path);
+            }
+            catch
+            {
+            }
         }
 
         private void UnloadFonts()
@@ -113,11 +121,17 @@ namespace Furality.Editor.Tools.BadgeMaker
         {
             var destPath = Path.Combine(FontPath, fontName);
 
-            File.Copy(srcPath, destPath, true);
+            try
+            {
+                File.Copy(srcPath, destPath, true);
 
-            int returnFontSize = AddFontResourceEx(destPath, 0, IntPtr.Zero);
-            if (returnFontSize == 0)
-                Debug.LogError("Failed to add font resource: " + FontPath + TitleFontName);
+                int returnFontSize = AddFontResourceEx(destPath, 0, IntPtr.Zero);
+                if (returnFontSize == 0)
+                    Debug.LogError("Failed to add font resource: " + FontPath + TitleFontName);
+            }
+            catch
+            {
+            }
         }
         
         void LoadFonts()
@@ -164,6 +178,7 @@ namespace Furality.Editor.Tools.BadgeMaker
                 Directory.CreateDirectory(outPath);
             outPath = Path.Combine(outPath, "CUSTOM_" + _badgeName);
             string metallicOutPath = outPath + "_Metallic";
+            string emissionOutPath = outPath + "_Emission";
 
             LoadFonts();
                 
@@ -203,6 +218,9 @@ namespace Furality.Editor.Tools.BadgeMaker
 
             // Now construct a new masks texture using the generated metallic alpha combined with the GBA of the existing masks targa
             CompositeMetallicSmoothnessMask(Path.Combine(badgeTexturesDir, fileName + "_MASKS.tga"), metallicOutPath + ".png", outPath + "_MASK.png");
+            
+            // Aaaaand another for emissino
+            CreateBadge(Path.Combine(badgeTexturesDir, fileName + "_EMI.png"), nameImage, pronounsImage, emissionOutPath + ".png");
                 
             AssetDatabase.Refresh();
 
@@ -217,6 +235,15 @@ namespace Furality.Editor.Tools.BadgeMaker
             }
             importer.streamingMipmaps = true;
             importer.SaveAndReimport();
+            
+            TextureImporter emissionImporter = AssetImporter.GetAtPath(emissionOutPath + ".png") as TextureImporter;
+            if (!emissionImporter)
+            {
+                Debug.LogError("Failed to import emission texture. Quitting BadgeMaker");
+                return;
+            }
+            emissionImporter.streamingMipmaps = true;
+            emissionImporter.SaveAndReimport();
                 
             TextureImporter metallicImporter = AssetImporter.GetAtPath(outPath + "_MASK.png") as TextureImporter;
             if (!metallicImporter)
@@ -232,7 +259,7 @@ namespace Furality.Editor.Tools.BadgeMaker
             {
                 EditorUtility.DisplayProgressBar("Creating Badge", "Applying to material...", 0.875f);
                 
-                ApplyTexturesToMaterial(outPath + ".png", outPath + "_MASK.png");
+                ApplyTexturesToMaterial(outPath + ".png", outPath + "_MASK.png", emissionOutPath + ".png");
             }
 
             EditorUtility.DisplayProgressBar("Creating Badge", "Unloading Font...", 1);
@@ -261,7 +288,7 @@ namespace Furality.Editor.Tools.BadgeMaker
             output.Write(outPath);
         }
 
-        void ApplyTexturesToMaterial(string baseColorPath, string maskPath)
+        void ApplyTexturesToMaterial(string baseColorPath, string maskPath, string emissionPath)
         {
             var material = AssetDatabase.LoadAssetAtPath<Material>(Path.Combine(MakeBadgeFolder(_conventionNames[_badgeConvention], _tierNames[_badgeTier]), "Material", "Badge"+Regex.Replace(_tierNames[_badgeTier], @"\s+", "") + ".mat"));
             if (!material)
@@ -285,9 +312,17 @@ namespace Furality.Editor.Tools.BadgeMaker
                 return;
             }
             
+            var emission = AssetDatabase.LoadAssetAtPath<Texture2D>(emissionPath);
+            if (!mask)
+            {
+                Debug.LogError($"Failed to load emission texture at {emissionPath}. Stopping...");
+                return;
+            }
+            
             // Set the texture to the material
             material.SetTexture(MainTex, texture);
             material.SetTexture(MaskMap01, mask);
+            material.SetTexture(EmissionMap, emission);
             
             AssetDatabase.SaveAssets();
         }
