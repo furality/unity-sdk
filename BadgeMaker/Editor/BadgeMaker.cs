@@ -176,7 +176,7 @@ namespace Furality.Editor.Tools.BadgeMaker
             string outPath = Path.Combine(badgeTexturesDir, "Custom");
             if (!Directory.Exists(outPath))
                 Directory.CreateDirectory(outPath);
-            outPath = Path.Combine(outPath, "CUSTOM_" + _badgeName);
+            outPath = Path.Combine(outPath, "CUSTOM_" + Regex.Replace(_badgeName, @"[<>:""/\\|?*]", "_"));
             string metallicOutPath = outPath + "_Metallic";
             string emissionOutPath = outPath + "_Emission";
 
