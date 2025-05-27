@@ -35,7 +35,7 @@ namespace Furality.SDK.Editor.DependencyResolving.Providers.Internal
         
         public async Task<bool> Resolve(Package packageToResolve)
         {
-            var package = new LocalDataSource().FindPackage(packageToResolve.Id);
+            var package = new LocalDataSource().FindPackage(packageToResolve.Id, packageToResolve.Version);
 
             if (package == null) package = _fallbacks.ToList().Find(x => x.Id == packageToResolve.Id && x.Version == packageToResolve.Version);
             

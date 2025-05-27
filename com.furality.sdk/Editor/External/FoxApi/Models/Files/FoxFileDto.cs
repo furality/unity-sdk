@@ -35,7 +35,10 @@ namespace Furality.SDK.Editor.External.FoxApi.Models.Files
                 var list = new List<Package>();
                 if (Category == "badge")
                 {
-                    list.Add(new Package() { Id = "com.furality.badgemaker", Version = new Version(1, 1, 0) });
+                    if (ConventionId == "furality06")
+                        list.Add(new Package() { Id = "com.furality.badgemaker", Version = new Version(1, 1, 0) });
+                    if (ConventionId == "furality08")
+                        list.Add(new Package() { Id = "com.furality.badgemaker", Version = new Version(1, 2, 0) });
                 }
                 
                 switch (ConventionId)
