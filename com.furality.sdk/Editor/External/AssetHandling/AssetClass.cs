@@ -27,6 +27,8 @@ namespace Furality.SDK.Editor.External.AssetHandling
             
             if (_downloads == null) return;
 
+            _downloads = _downloads.OrderByDescending(g => g.Key);
+
             foreach (var download in _downloads)
             {
                 _foldOutStates.Add(download.Key, false);
