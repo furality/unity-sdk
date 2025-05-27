@@ -16,7 +16,7 @@ namespace Furality.SDK.Editor
                 Id = "com.furality.somnashader",
                 Name = "Somna Shader",
                 Description = "Furality Somna Avatar Shader for VRChat. Created by Naito @ Furality, Inc.",
-                ImageUrl = "https://media.cdn.furality.online/files/web/logo/furality-umbra-logo-md.png",
+                ImageUrl = "https://media.cdn.furality.online/files/web/logo/furality-somna-logo-md.png",
                 Category = "Shaders",
                 ConventionId = "Furality Somna",
                 Version = new Version(1, 0, 2),
