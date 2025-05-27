@@ -24,11 +24,18 @@ namespace Furality.SDK.Editor.DependencyResolving.Providers.Internal
                 FallbackUrl = 
                     "https://github.com/llealloo/vrc-udon-audio-link/releases/download/0.3.2/AudioLink_0.3.2_minimal.unitypackage"
             },
+            new FuralityPackage()
+            {
+                Id = "com.llealloo.audiolink",
+                Version = new Version(2, 1, 0),
+                FallbackUrl = 
+                    "https://github.com/llealloo/audiolink/releases/download/2.1.0/AudioLink_2.1.0_minimal.unitypackage"
+            },
         };
         
         public async Task<bool> Resolve(Package packageToResolve)
         {
-            var package = new LocalDataSource().FindPackage(packageToResolve.Id);
+            var package = new LocalDataSource().FindPackage(packageToResolve.Id, packageToResolve.Version);
 
             if (package == null) package = _fallbacks.ToList().Find(x => x.Id == packageToResolve.Id && x.Version == packageToResolve.Version);
             

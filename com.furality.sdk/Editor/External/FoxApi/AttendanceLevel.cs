@@ -7,5 +7,7 @@
         buddy,
         first_class,
         sponsor,
+        team,
+        ultra,
     }
 }

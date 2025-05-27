@@ -11,7 +11,23 @@ namespace Furality.SDK.Editor
     {
         private readonly List<FuralityPackage> _packages = new List<FuralityPackage>() {
             // Shaders
-            
+            new FuralityPackage()
+            {
+                Id = "com.furality.somnashader",
+                Name = "Somna Shader",
+                Description = "Furality Somna Avatar Shader for VRChat. Created by Naito @ Furality, Inc.",
+                ImageUrl = "https://media.cdn.furality.online/files/web/logo/furality-umbra-logo-md.png",
+                Category = "Shaders",
+                ConventionId = "Furality Somna",
+                Version = new Version(1, 0, 2),
+                AttendanceLevel = AttendanceLevel.none,
+                IsPublic = true,
+                Dependencies = new List<Package>()
+                {
+                    new Package() {Id = "com.llealloo.audiolink", Version = new Version(2, 1, 0)}
+                },
+                FallbackUrl = "https://github.com/furality/vcc-furality-somna-shader/releases/download/1.0.2/com.furality.somnashader-1.0.2.unitypackage"
+            },
             new FuralityPackage()
             {
                 Id = "com.furality.umbrashader",
@@ -55,16 +71,31 @@ namespace Furality.SDK.Editor
                 Description = "Allows you to customise the text displayed on badges!",
                 ImageUrl = "https://media.furality.online/files/web/merch/all-badges.png",
                 Category = "Tools",
-                ConventionId = "Furality Sylva",
+                ConventionId = "furality06",
                 Dependencies = new List<Package>(),
                 Version = new Version(1, 1, 0),
                 AttendanceLevel = AttendanceLevel.none,
                 IsPublic = true,
                 FallbackUrl = "https://github.com/furality/unity-sdk/releases/download/1.1.0/com.furality.badgemaker-1.1.0.unitypackage"
             },
+            
+            new FuralityPackage()
+            {
+                Id = "com.furality.badgemaker",
+                Name = "Badge Maker",
+                Description = "Allows you to customise the text displayed on badges!",
+                ImageUrl = "https://media.furality.online/files/web/merch/all-badges.png",
+                Category = "Tools",
+                ConventionId = "furality08",
+                Dependencies = new List<Package>(),
+                Version = new Version(1, 2, 0),
+                AttendanceLevel = AttendanceLevel.none,
+                IsPublic = true,
+                FallbackUrl = "https://github.com/furality/unity-sdk/releases/download/1.2.0/com.furality.badgemaker-1.2.0.unitypackage"
+            },
         };
         
-        public FuralityPackage FindPackage(string id) => _packages.Find(x => x.Id == id);
+        public FuralityPackage FindPackage(string id, Version version) => _packages.Find(x => x.Id == id && x.Version == version);
         
         public IEnumerable<FuralityPackage> GetPackages() => _packages;
         
