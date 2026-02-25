@@ -1,4 +1,4 @@
-﻿// Copyright Furality, Inc. 2025
+﻿// Copyright Furality, Inc. 2026
 
 using System;
 using System.Collections.Generic;
@@ -11,419 +11,423 @@ using UnityEditor;
 using UnityEngine;
 
 namespace Furality.Editor.Tools.BadgeMaker
-{	
+{
     public class BadgeMaker : EditorWindow
     {
-        private static readonly Dictionary<string, Dictionary<string, MagickColor>> ConventionsToColors = new Dictionary<string, Dictionary<string, MagickColor>>()
+        private static readonly Dictionary<string, ConventionConfig> Conventions = new()
         {
-            {
-                "Furality Umbra", new Dictionary<string, MagickColor>()
+            ["Furality Sylva"] = new ConventionConfig(
+                nameX: 2048, nameY: 1304, nameW: 3208, nameH: 855,
+                pronX: 2048, pronY: 1717, pronW: 1554, pronH: 257,
+                titleBean:    "f6-name.bean",     titleFont:    "Rowdies-Light.ttf",
+                pronounsBean: "f6-pronouns.bean", pronounsFont: "Rowdies-Regular.ttf",
+                pronounsMatchTextColor: false,
+                pipeline: ConventionConfig.PipelineType.Sylva
+            ),
+
+            ["Furality Umbra"] = new ConventionConfig(
+                nameX: 2048, nameY: 1504, nameW: 3208, nameH: 855,
+                pronX: 2048, pronY: 1917, pronW: 1554, pronH: 257,
+                titleBean:    "f7-font.bean", titleFont:    "Roboto-BoldItalic.ttf",
+                pronounsBean: "f7-font.bean", pronounsFont: "Roboto-BoldItalic.ttf",
+                pronounsMatchTextColor: true,
+                pipeline: ConventionConfig.PipelineType.Umbra,
+                tierColors: new()
                 {
-                    {"Attendee", new MagickColor("#37ff79")},
-                    {"First Class", new MagickColor("#fe3fff")},
-                    {"Sponsor", new MagickColor("#ffce49")}
+                    ["Attendee"]    = new MagickColor("#37ff79"),
+                    ["First Class"] = new MagickColor("#fe3fff"),
+                    ["Sponsor"]     = new MagickColor("#ffce49"),
                 }
-            },
-            {
-                "Furality Somna", new Dictionary<string, MagickColor>()
+            ),
+
+            ["Furality Somna"] = new ConventionConfig(
+                nameX: 375, nameY: 700, nameW: 610, nameH: 150,
+                pronX: 450, pronY: 810, pronW: 449, pronH: 75,
+                titleBean:    "f8-font.bean", titleFont:    "Fraunces_72pt-SemiBold.ttf",
+                pronounsBean: "f8-font.bean", pronounsFont: "Fraunces_72pt-SemiBold.ttf",
+                pronounsMatchTextColor: false,
+                pipeline: ConventionConfig.PipelineType.Somna,
+                tierColors: new()
                 {
-                    {"Attendee", new MagickColor("#ffeead")},
-                    {"First Class", new MagickColor("#ffeead")},
-                    {"Sponsor", new MagickColor("#ffeead")},
-                    {"Dream Maker", new MagickColor("#ffeead")},
-                    {"Team", new MagickColor("#ffeead")}
+                    ["Attendee"]    = new MagickColor("#ffeead"),
+                    ["First Class"] = new MagickColor("#ffeead"),
+                    ["Sponsor"]     = new MagickColor("#ffeead"),
+                    ["Dream Maker"] = new MagickColor("#ffeead"),
+                    ["Team"]        = new MagickColor("#ffeead"),
                 }
-            },
+            ),
         };
 
-        private static readonly int MainTex = Shader.PropertyToID("_MainTex");
-        private static readonly int MaskMap01 = Shader.PropertyToID("_MaskMap01");
+        private static readonly int MainTex     = Shader.PropertyToID("_MainTex");
+        private static readonly int EffectMask  = Shader.PropertyToID("_EffectMask");
+        private static readonly int MaskMap01   = Shader.PropertyToID("_MaskMap01");
         private static readonly int EmissionMap = Shader.PropertyToID("_EmissionMap");
 
+        // GDI font loading helps some ppl's installs find the font somehow
         [DllImport("Gdi32.dll")]
         private static extern int AddFontResourceEx(string lpFileName, uint fl, IntPtr pdv);
 
         [DllImport("Gdi32.dll")]
         private static extern bool RemoveFontResourceEx(string lpFileName, uint fl, IntPtr pdv);
-        
+
+        // gui state
         private string _badgeName = "Your Name";
-        private string _pronouns = "Title/Pronouns";
-        private int _badgeTier = -1;
+        private string _pronouns  = "Title/Pronouns";
+        private int _badgeTier       = -1;
         private int _badgeConvention = -1;
         private bool _applyToMaterial = true;
-        private List<string> _tierNames = new List<string>();
-        private List<string> _conventionNames = new List<string>();
-        
-        // Name Bounds
-        private const int NameX = 375, NameY = 700;
-        private const int NameWidth = 610, NameHeight = 150;
+        private List<string> _tierNames       = new();
+        private List<string> _conventionNames = new();
+        private ConventionConfig _activeConfig;
 
-        // Pronouns Bounds
-        private const int PronounsX = 450, PronounsY = 810;
-        private const int PronounsWidth = 449, PronounsHeight = 75;
-
-        private static string FontPath => Path.Combine(Application.persistentDataPath, "Fonts");
-
-        private const string FontFileName = "f8-font.bean";
-        private const string TitleFontName = "Fraunces_72pt-SemiBold.ttf";
-        private const string PronounsFontName = "Fraunces_72pt-SemiBold.ttf";
-
-        void OnEnable()
+        private void OnEnable()
         {
-            var conventionFolders = AssetDatabase.GetSubFolders("Assets/Furality");
-            foreach (var conventionFolder in conventionFolders)
+            foreach (var conventionFolder in AssetDatabase.GetSubFolders("Assets/Furality"))
             {
                 var tiers = AssetDatabase.GetSubFolders(Path.Combine(conventionFolder, "Avatar Assets/Badges"));
                 if (tiers.Length == 0) continue;
-
-                var splitConventionFolder = conventionFolder.Split('/');
-                _tierNames.AddRange(tiers.Select(tier => tier.Split('/')[^1]));
-                _conventionNames.Add(splitConventionFolder[^1]);
+                _conventionNames.Add(conventionFolder.Split('/')[^1]);
+                _tierNames.AddRange(tiers.Select(t => t.Split('/')[^1]));
             }
         }
 
         [MenuItem("Furality/Show Badge Maker")]
-        static void Init()
+        private static void Init()
         {
-            // Get existing open window or if none, make a new one:
-            BadgeMaker window = (BadgeMaker)GetWindow(typeof(BadgeMaker));
+            var window = (BadgeMaker)GetWindow(typeof(BadgeMaker));
             window.titleContent = new GUIContent("Furality Badge Maker");
             window.minSize = new Vector2(350, 400);
             window.Show();
         }
 
+        private void OnDestroy()
+        {
+            if (_activeConfig != null) UnloadFonts(_activeConfig);
+        }
+
         private void UnloadAndDeleteFontIfExists(string path)
         {
             if (!File.Exists(path)) return;
-
-            try
-            {
-                RemoveFontResourceEx(path, 0, IntPtr.Zero);
-                File.Delete(path);
-            }
-            catch
-            {
-            }
+            try { RemoveFontResourceEx(path, 0, IntPtr.Zero); File.Delete(path); } catch { }
         }
 
-        private void UnloadFonts()
+        private void UnloadFonts(ConventionConfig config)
         {
-            UnloadAndDeleteFontIfExists(Path.Combine(FontPath, TitleFontName));
-            UnloadAndDeleteFontIfExists(Path.Combine(FontPath, PronounsFontName));
+            UnloadAndDeleteFontIfExists(Path.Combine(Utils.FontPath, config.TitleFont));
+            if (config.PronounsFont != config.TitleFont)
+                UnloadAndDeleteFontIfExists(Path.Combine(Utils.FontPath, config.PronounsFont));
         }
 
-        private void OnDestroy() => UnloadFonts();
-
-        string MakeBadgeFolder(string convention, string tier) =>
-            Path.Combine("Assets", "Furality", convention, "Avatar Assets", "Badges", tier);
-
-        void CopyAndLoadFont(string srcPath, string fontName)
+        private void CopyAndLoadFont(string srcPath, string fontName)
         {
-            var destPath = Path.Combine(FontPath, fontName);
-
+            var destPath = Path.Combine(Utils.FontPath, fontName);
             try
             {
                 File.Copy(srcPath, destPath, true);
-
-                int returnFontSize = AddFontResourceEx(destPath, 0, IntPtr.Zero);
-                if (returnFontSize == 0)
-                    Debug.LogError("Failed to add font resource: " + FontPath + TitleFontName);
+                if (AddFontResourceEx(destPath, 0, IntPtr.Zero) == 0)
+                    Debug.LogError("Failed to add font resource: " + destPath);
             }
-            catch
-            {
-            }
+            catch { }
         }
-        
-        void LoadFonts()
+
+        private void LoadFonts(ConventionConfig config)
         {
-            string srcFontPath = Path.Combine(Application.dataPath, "Furality", "BadgeMaker", "Editor", FontFileName);
-
-            // Ensure the font path exists and copy it to there, while ensuring the new name matches the FontName
-            if (!Directory.Exists(FontPath))
-               Directory.CreateDirectory(FontPath);
-
-            UnloadFonts();
-            
-            CopyAndLoadFont(srcFontPath, TitleFontName);
-            CopyAndLoadFont(srcFontPath, PronounsFontName);
+            if (!Directory.Exists(Utils.FontPath)) Directory.CreateDirectory(Utils.FontPath);
+            UnloadFonts(config);
+            CopyAndLoadFont(Path.Combine(Utils.BadgeMakerEditorPath, config.TitleBean), config.TitleFont);
+            if (config.PronounsFont != config.TitleFont)
+                CopyAndLoadFont(Path.Combine(Utils.BadgeMakerEditorPath, config.PronounsBean), config.PronounsFont);
         }
 
-        void ConstructBadge()
+
+        private void OnGUI()
         {
-            if (!ConventionsToColors.ContainsKey(_conventionNames[_badgeConvention]))
-            {
-                Debug.LogError("Convention could not be found in color map. Quitting BadgeMaker");
-                return;
-            }
-
-            if (!ConventionsToColors[_conventionNames[_badgeConvention]].ContainsKey(_tierNames[_badgeTier]))
-            {
-                Debug.LogError("Badge tier could not be found in color map. Quitting BadgeMaker");
-                return;
-            }
-                
-            var textColor = ConventionsToColors[_conventionNames[_badgeConvention]][_tierNames[_badgeTier]];
-                
-            EditorUtility.DisplayProgressBar("Creating Badge", "Loading Font...", 0.125f);
-
-            // get the path to the currently selected folder + Textures
-            string badgeTexturesDir = Path.Combine(MakeBadgeFolder(_conventionNames[_badgeConvention], _tierNames[_badgeTier]), "Textures");
-
-            // By default (pin), we just need to select image name tierName+_Empty.png
-            string fileName = "Badge" + Regex.Replace(_tierNames[_badgeTier], @"\s+", "");
-                
-            // Create a save path and ensure the folder exists. We want the image to be saved in a folder named "Custom" relative to the original image
-            string outPath = Path.Combine(badgeTexturesDir, "Custom");
-            if (!Directory.Exists(outPath))
-                Directory.CreateDirectory(outPath);
-            outPath = Path.Combine(outPath, "CUSTOM_" + Regex.Replace(_badgeName, @"[<>:""/\\|?*]", "_"));
-            string metallicOutPath = outPath + "_Metallic";
-            string emissionOutPath = outPath + "_Emission";
-
-            LoadFonts();
-                
-            EditorUtility.DisplayProgressBar("Creating Badge", "Creating Name Text...", 0.25f);
-
-            MagickImage nameImage = null;
-            MagickImage pronounsImage = null;
-
-            MagickImage nameImageWhite = null;
-            MagickImage pronounsImageWhite = null;
-
-            if (!string.IsNullOrEmpty(_badgeName))
-            {
-                var fontFamily = Path.Combine(FontPath, TitleFontName);
-                nameImage = FindFontSize(fontFamily, _badgeName, NameWidth, NameHeight, textColor);
-                nameImageWhite = FindFontSize(fontFamily, _badgeName, NameWidth, NameHeight, new MagickColor("#ffffff"));
-            }
-
-            EditorUtility.DisplayProgressBar("Creating Badge", "Creating Title Text...", 0.175f);
-
-            if (!string.IsNullOrEmpty(_pronouns))
-            {
-                pronounsImage = FindFontSize(Path.Combine(FontPath, PronounsFontName), _pronouns, PronounsWidth, PronounsHeight,
-                    new MagickColor("#ffffff"));
-                pronounsImageWhite = pronounsImage; // We can reuse the image because the pronouns are always white anyway
-            }
-
-            EditorUtility.DisplayProgressBar("Creating Badge", "Compositing main texture...", 0.5f);
-
-            // Create the badge
-            CreateBadge(Path.Combine(badgeTexturesDir, fileName + "_DIF.png"), nameImage, pronounsImage, outPath + ".png");
-
-            EditorUtility.DisplayProgressBar("Creating Badge", "Compositing emission texture...", 0.625f);
-
-            // Another for the metallic
-            CreateBadge(Path.Combine(badgeTexturesDir, "Others", "Material.001_Metallic.png"), nameImageWhite, pronounsImageWhite, metallicOutPath + ".png");
-
-            // Now construct a new masks texture using the generated metallic alpha combined with the GBA of the existing masks targa
-            CompositeMetallicSmoothnessMask(Path.Combine(badgeTexturesDir, fileName + "_MASKS.tga"), metallicOutPath + ".png", outPath + "_MASK.png");
-            
-            // Aaaaand another for emissino
-            CreateBadge(Path.Combine(badgeTexturesDir, fileName + "_EMI.png"), nameImage, pronounsImage, emissionOutPath + ".png");
-                
-            AssetDatabase.Refresh();
-
-            EditorUtility.DisplayProgressBar("Creating Badge", "Applying mipmaps...", 0.75f);
-
-            // Apply mipmaps
-            TextureImporter importer = AssetImporter.GetAtPath(outPath + ".png") as TextureImporter;
-            if (!importer)
-            {
-                Debug.LogError("Failed to import base color texture. Quitting BadgeMaker");
-                return;
-            }
-            importer.streamingMipmaps = true;
-            importer.SaveAndReimport();
-            
-            TextureImporter emissionImporter = AssetImporter.GetAtPath(emissionOutPath + ".png") as TextureImporter;
-            if (!emissionImporter)
-            {
-                Debug.LogError("Failed to import emission texture. Quitting BadgeMaker");
-                return;
-            }
-            emissionImporter.streamingMipmaps = true;
-            emissionImporter.SaveAndReimport();
-                
-            TextureImporter metallicImporter = AssetImporter.GetAtPath(outPath + "_MASK.png") as TextureImporter;
-            if (!metallicImporter)
-            {
-                Debug.LogError("Failed to import metallic texture. Quitting BadgeMaker");
-                return;
-            }
-            metallicImporter.streamingMipmaps = true;
-            metallicImporter.sRGBTexture = false;   // Messes with colors n stuff
-            metallicImporter.SaveAndReimport();
-
-            if (_applyToMaterial)
-            {
-                EditorUtility.DisplayProgressBar("Creating Badge", "Applying to material...", 0.875f);
-                
-                ApplyTexturesToMaterial(outPath + ".png", outPath + "_MASK.png", emissionOutPath + ".png");
-            }
-
-            EditorUtility.DisplayProgressBar("Creating Badge", "Unloading Font...", 1);
-
-            UnloadFonts();
-        }
-
-        void CompositeMetallicSmoothnessMask(string templateMask, string metallicPath, string outPath)
-        {
-            using MagickImage baseImage = new MagickImage(metallicPath);
-            using MagickImage maskImage = new MagickImage(templateMask);
-            
-            maskImage.Flip();   // God literally why do I need to do this
-                    
-            var separated = maskImage.Separate().ToList();
-
-            var newMaskImage = new MagickImageCollection()
-            {
-                baseImage,
-                separated[1],
-                separated[2],
-                separated[3],
-            };
-
-            using var output = newMaskImage.Combine();
-            output.Write(outPath);
-        }
-
-        void ApplyTexturesToMaterial(string baseColorPath, string maskPath, string emissionPath)
-        {
-            var material = AssetDatabase.LoadAssetAtPath<Material>(Path.Combine(MakeBadgeFolder(_conventionNames[_badgeConvention], _tierNames[_badgeTier]), "Material", "Badge"+Regex.Replace(_tierNames[_badgeTier], @"\s+", "") + ".mat"));
-            if (!material)
-            {
-                Debug.LogError("Failed to find material. Quitting BadgeMaker");
-                return;
-            }
-            
-            // Load the new texture
-            var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(baseColorPath);
-            if (!texture)
-            {
-                Debug.LogError($"Failed to load base color at {baseColorPath}. Stopping...");
-                return;
-            }
-            
-            var mask = AssetDatabase.LoadAssetAtPath<Texture2D>(maskPath);
-            if (!mask)
-            {
-                Debug.LogError($"Failed to load mask texture at {maskPath}. Stopping...");
-                return;
-            }
-            
-            var emission = AssetDatabase.LoadAssetAtPath<Texture2D>(emissionPath);
-            if (!mask)
-            {
-                Debug.LogError($"Failed to load emission texture at {emissionPath}. Stopping...");
-                return;
-            }
-            
-            // Set the texture to the material
-            material.SetTexture(MainTex, texture);
-            material.SetTexture(MaskMap01, mask);
-            material.SetTexture(EmissionMap, emission);
-            
-            AssetDatabase.SaveAssets();
-        }
-        
-        void OnGUI()
-        { 
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
             GUILayout.Label("Badge Maker", EditorStyles.boldLabel);
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
-
             GUILayout.Space(10);
 
-            // If our selected tier is -1, this is the first time we open the window, so we select the highest tier (this doesn't work too well for people with multiple tiers but works well enough)
-            if (_badgeTier == -1)
-                _badgeTier = _tierNames.Count - 1;
+            if (_badgeTier == -1)       _badgeTier       = _tierNames.Count - 1;
+            if (_badgeConvention == -1) _badgeConvention = _conventionNames.Count - 1;
 
-            if (_badgeConvention == -1)
-                _badgeConvention = _conventionNames.Count - 1;
-            
-            // If there were no folders found, show a warning saying that you need badges imported
             if (_tierNames.Count == 0 || _conventionNames.Count == 0)
             {
-                EditorGUILayout.HelpBox("No badges found! Please download badges from the downloads tab.", MessageType.Warning);
+                EditorGUILayout.HelpBox(
+                    "No badges found! Please download badges from the downloads tab.",
+                    MessageType.Warning);
                 return;
             }
-            
-            // Text field for the badge name
-            _badgeName = EditorGUILayout.TextField("Badge Name", _badgeName);
-            _pronouns = EditorGUILayout.TextField("Title", _pronouns);
-            
-            // Create a dropdown menu for the badge type but only show the folder name
-            _badgeTier = EditorGUILayout.Popup("Badge Type", _badgeTier, _tierNames.ToArray());
-            _badgeConvention = EditorGUILayout.Popup("Convention", _badgeConvention, _conventionNames.ToArray());
 
-            // Checkbox to apply the new texture to the material  
+            _badgeName       = EditorGUILayout.TextField("Badge Name", _badgeName);
+            _pronouns        = EditorGUILayout.TextField("Title",      _pronouns);
+            _badgeTier       = EditorGUILayout.Popup("Badge Type",  _badgeTier,       _tierNames.ToArray());
+            _badgeConvention = EditorGUILayout.Popup("Convention",  _badgeConvention, _conventionNames.ToArray());
             _applyToMaterial = EditorGUILayout.Toggle("Auto-Apply to Base Material", _applyToMaterial);
 
-            // Button to create the badge
+            var selectedConvention = _conventionNames[_badgeConvention];
+            if (!Conventions.ContainsKey(selectedConvention))
+                EditorGUILayout.HelpBox(
+                    $"'{selectedConvention}' is not supported by this version of Badge Maker.",
+                    MessageType.Warning);
+
             if (GUILayout.Button("Create Badge"))
             {
-                try
-                {
-                    ConstructBadge();
-                }
-                finally
-                {
-                    // We definitely don't want to leave the user with a lingering progress bar
-                    EditorUtility.ClearProgressBar();
-                }
+                try   { ConstructBadge(); }
+                finally { EditorUtility.ClearProgressBar(); }
             }
         }
 
-        private void CreateBadge(string filePath, MagickImage nameImage, MagickImage pronounsImage, string outPath, bool debug = false)
+        private void ConstructBadge()
         {
-            using MagickImage image = new MagickImage(filePath);
+            var convention   = _conventionNames[_badgeConvention];
+            var tier         = _tierNames[_badgeTier];
+            var tierNoSpaces = Regex.Replace(tier, @"\s+", "");
+            var safeFileName = Regex.Replace(_badgeName, @"[<>:""/\\|?*]", "_");
+
+            if (!Conventions.TryGetValue(convention, out var config))
+            {
+                Debug.LogError($"No configuration found for convention '{convention}'. Cannot create badge.");
+                return;
+            }
+
+            if (config.TierColors != null && !config.TierColors.ContainsKey(tier))
+            {
+                Debug.LogError(
+                    $"Tier '{tier}' is not configured for '{convention}'. " +
+                    $"Expected one of: {string.Join(", ", config.TierColors.Keys)}");
+                return;
+            }
+
+            _activeConfig = config;
+
+            var textColor     = config.GetTextColor(tier);
+            var pronounsColor = config.PronounsMatchTextColor ? textColor : MagickColors.White;
+            var badgeFolder   = Utils.BadgeFolderRoot(convention, tier);
+
+            EditorUtility.DisplayProgressBar("Creating Badge", "Loading fonts...", 0.1f);
+            LoadFonts(config);
+
+            switch (config.Pipeline)
+            {
+                case ConventionConfig.PipelineType.Sylva:
+                    RunSylvaPipeline(config, badgeFolder, tier, safeFileName, textColor, pronounsColor);
+                    break;
+                case ConventionConfig.PipelineType.Umbra:
+                    RunUmbraPipeline(config, badgeFolder, tierNoSpaces, safeFileName, textColor, pronounsColor);
+                    break;
+                case ConventionConfig.PipelineType.Somna:
+                    RunSomnaPipeline(config, badgeFolder, tierNoSpaces, safeFileName, textColor, pronounsColor);
+                    break;
+            }
+
+            UnloadFonts(config);
+        }
+
+        // Sylva only needs a base diffuse and an emission texture
+        private void RunSylvaPipeline(ConventionConfig config, string badgeFolder,
+            string tier, string safeFileName,
+            MagickColor textColor, MagickColor pronounsColor)
+        {
+            var texDir       = Path.Combine(badgeFolder, "Texture");   // Sylva uses singular "Texture"
+            var inputBase    = Path.Combine(texDir, $"{tier}_Empty.png");
+            var inputEmission = Path.Combine(texDir, $"{tier}_Empty_EMI.png");
+
+            var outDir      = Path.Combine(texDir, "Custom");
+            if (!Directory.Exists(outDir)) Directory.CreateDirectory(outDir);
+            var outBase     = Path.Combine(outDir, $"CUSTOM_{safeFileName}.png");
+            var outEmission = Path.Combine(outDir, $"CUSTOM_{safeFileName}_EMI.png");
+
+            EditorUtility.DisplayProgressBar("Creating Badge", "Rendering name text...", 0.25f);
+            var nameImg     = MakeTextImage(config.TitleFont,   _badgeName, config.NameW,     config.NameH,     textColor);
+            EditorUtility.DisplayProgressBar("Creating Badge", "Rendering title text...", 0.35f);
+            var pronounsImg = MakeTextImage(config.PronounsFont, _pronouns, config.PronounsW, config.PronounsH, pronounsColor);
+
+            EditorUtility.DisplayProgressBar("Creating Badge", "Compositing base texture...", 0.5f);
+            CreateBadge(config, inputBase, nameImg, pronounsImg, outBase);
+            EditorUtility.DisplayProgressBar("Creating Badge", "Compositing emission texture...", 0.65f);
+            CreateBadge(config, inputEmission, nameImg, pronounsImg, outEmission);
+
+            AssetDatabase.Refresh();
+            EditorUtility.DisplayProgressBar("Creating Badge", "Importing textures...", 0.8f);
+            SetStreamingMipmaps(outBase);
+            SetStreamingMipmaps(outEmission);
+
+            if (!_applyToMaterial) return;
+            EditorUtility.DisplayProgressBar("Creating Badge", "Applying to material...", 0.9f);
+            var matPath = Path.Combine(badgeFolder, "Material", $"{tier}.mat");
+            if (TryLoadMaterial(matPath, out var mat))
+            {
+                mat.SetTexture(MainTex,     AssetDatabase.LoadAssetAtPath<Texture2D>(outBase));
+                mat.SetTexture(EffectMask,  AssetDatabase.LoadAssetAtPath<Texture2D>(outBase));
+                mat.SetTexture(EmissionMap, AssetDatabase.LoadAssetAtPath<Texture2D>(outEmission));
+                AssetDatabase.SaveAssets();
+            }
+        }
+
+        // Umbra only needs an emission texture and applies it to the material.
+        private void RunUmbraPipeline(ConventionConfig config, string badgeFolder,
+            string tierNoSpaces, string safeFileName,
+            MagickColor textColor, MagickColor pronounsColor)
+        {
+            var texDir        = Path.Combine(badgeFolder, "Textures");
+            var badgePrefix   = $"Badge {tierNoSpaces}";
+            var inputEmission = Path.Combine(texDir, $"{badgePrefix}_EMI_BLANK.png");
+
+            var outDir      = Path.Combine(texDir, "Custom");
+            if (!Directory.Exists(outDir)) Directory.CreateDirectory(outDir);
+            var outEmission = Path.Combine(outDir, $"CUSTOM_{safeFileName}_EMI_BLANK.png");
+
+            EditorUtility.DisplayProgressBar("Creating Badge", "Rendering name text...", 0.3f);
+            var nameImg     = MakeTextImage(config.TitleFont,   _badgeName, config.NameW,     config.NameH,     textColor);
+            EditorUtility.DisplayProgressBar("Creating Badge", "Rendering title text...", 0.45f);
+            var pronounsImg = MakeTextImage(config.PronounsFont, _pronouns, config.PronounsW, config.PronounsH, pronounsColor);
+
+            EditorUtility.DisplayProgressBar("Creating Badge", "Compositing emission texture...", 0.65f);
+            CreateBadge(config, inputEmission, nameImg, pronounsImg, outEmission);
+
+            AssetDatabase.Refresh();
+            EditorUtility.DisplayProgressBar("Creating Badge", "Importing textures...", 0.8f);
+            SetStreamingMipmaps(outEmission);
+
+            if (!_applyToMaterial) return;
+            EditorUtility.DisplayProgressBar("Creating Badge", "Applying to material...", 0.9f);
+            var matPath = Path.Combine(badgeFolder, "Materials", $"Badge{tierNoSpaces}.mat");
+            if (TryLoadMaterial(matPath, out var mat))
+            {
+                mat.SetTexture(EmissionMap, AssetDatabase.LoadAssetAtPath<Texture2D>(outEmission));
+                AssetDatabase.SaveAssets();
+            }
+        }
+
+        // Somna is such a quirky lil guy. Needs base diffuse, metallic/smoothness mask composite, emission.
+        private void RunSomnaPipeline(ConventionConfig config, string badgeFolder,
+            string tierNoSpaces, string safeFileName,
+            MagickColor textColor, MagickColor pronounsColor)
+        {
+            var texDir        = Path.Combine(badgeFolder, "Textures");
+            var badgePrefix   = $"Badge{tierNoSpaces}";
+            var inputDif      = Path.Combine(texDir, $"{badgePrefix}_DIF.png");
+            var inputMetallic = Path.Combine(texDir, "Others", "Material.001_Metallic.png");
+            var inputMasks    = Path.Combine(texDir, $"{badgePrefix}_MASKS.tga");
+            var inputEmission = Path.Combine(texDir, $"{badgePrefix}_EMI.png");
+
+            var outDir       = Path.Combine(texDir, "Custom");
+            if (!Directory.Exists(outDir)) Directory.CreateDirectory(outDir);
+            var outBase      = Path.Combine(outDir, $"CUSTOM_{safeFileName}.png");
+            var outMetallic  = Path.Combine(outDir, $"CUSTOM_{safeFileName}_Metallic.png");
+            var outMask      = Path.Combine(outDir, $"CUSTOM_{safeFileName}_MASK.png");
+            var outEmission  = Path.Combine(outDir, $"CUSTOM_{safeFileName}_Emission.png");
+
+            EditorUtility.DisplayProgressBar("Creating Badge", "Rendering name text...", 0.15f);
+            var nameImg      = MakeTextImage(config.TitleFont,   _badgeName, config.NameW,     config.NameH,     textColor);
+            var nameImgWhite = MakeTextImage(config.TitleFont,   _badgeName, config.NameW,     config.NameH,     MagickColors.White);
+            EditorUtility.DisplayProgressBar("Creating Badge", "Rendering title text...", 0.25f);
+            var pronounsImg  = MakeTextImage(config.PronounsFont, _pronouns, config.PronounsW, config.PronounsH, pronounsColor);
+
+            EditorUtility.DisplayProgressBar("Creating Badge", "Compositing base texture...", 0.4f);
+            CreateBadge(config, inputDif, nameImg, pronounsImg, outBase);
+            EditorUtility.DisplayProgressBar("Creating Badge", "Compositing metallic texture...", 0.55f);
+            CreateBadge(config, inputMetallic, nameImgWhite, pronounsImg, outMetallic);
+            EditorUtility.DisplayProgressBar("Creating Badge", "Building mask texture...", 0.65f);
+            CompositeMetallicSmoothnessMask(inputMasks, outMetallic, outMask);
+            EditorUtility.DisplayProgressBar("Creating Badge", "Compositing emission texture...", 0.75f);
+            CreateBadge(config, inputEmission, nameImg, pronounsImg, outEmission);
+
+            AssetDatabase.Refresh();
+            EditorUtility.DisplayProgressBar("Creating Badge", "Importing textures...", 0.85f);
+            SetStreamingMipmaps(outBase);
+            SetStreamingMipmaps(outEmission);
+            SetStreamingMipmaps(outMask, sRGB: false);
+
+            if (!_applyToMaterial) return;
+            EditorUtility.DisplayProgressBar("Creating Badge", "Applying to material...", 0.95f);
+            var matPath = Path.Combine(badgeFolder, "Material", $"Badge{tierNoSpaces}.mat");
+            if (TryLoadMaterial(matPath, out var mat))
+            {
+                mat.SetTexture(MainTex,     AssetDatabase.LoadAssetAtPath<Texture2D>(outBase));
+                mat.SetTexture(MaskMap01,   AssetDatabase.LoadAssetAtPath<Texture2D>(outMask));
+                mat.SetTexture(EmissionMap, AssetDatabase.LoadAssetAtPath<Texture2D>(outEmission));
+                AssetDatabase.SaveAssets();
+            }
+        }
+
+        private MagickImage MakeTextImage(string fontName, string text, int w, int h, MagickColor color)
+        {
+            if (string.IsNullOrEmpty(text)) return null;
+            return FindFontSize(Path.Combine(Utils.FontPath, fontName), text, w, h, color);
+        }
+
+        private void CreateBadge(ConventionConfig config,
+            string templatePath, MagickImage nameImg, MagickImage pronounsImg,
+            string outPath, bool debug = false)
+        {
+            using MagickImage image = new MagickImage(templatePath);
+
             if (debug)
             {
                 image.Draw(new DrawableStrokeColor(MagickColors.Red));
                 image.Draw(new DrawableFillColor(MagickColors.Transparent));
-                image.Draw(new DrawableRectangle(NameX - NameWidth / 2, NameY - NameHeight / 2, NameX + NameWidth / 2, NameY + NameHeight / 2));
-                image.Draw(new DrawableRectangle(PronounsX - PronounsWidth / 2, PronounsY - PronounsHeight / 2, PronounsX + PronounsWidth / 2, PronounsY + PronounsHeight / 2));
-            }
-                
-            if (nameImage != null)
-            {
-                // Figure out the position to draw the text given its current size and the fact NameX and NameY are where we want the center of the text to be
-                int tempNameX = NameX - (int)(nameImage.Width / 2);
-                int tempNameY = NameY - (int)(nameImage.Height / 2);
-
-                image.Composite(nameImage, tempNameX, tempNameY, CompositeOperator.Atop);
+                image.Draw(new DrawableRectangle(
+                    config.NameX - config.NameW / 2, config.NameY - config.NameH / 2,
+                    config.NameX + config.NameW / 2, config.NameY + config.NameH / 2));
+                image.Draw(new DrawableRectangle(
+                    config.PronounsX - config.PronounsW / 2, config.PronounsY - config.PronounsH / 2,
+                    config.PronounsX + config.PronounsW / 2, config.PronounsY + config.PronounsH / 2));
             }
 
-            if (pronounsImage != null)
-            {
-                int tempPronounsX = PronounsX - (int)(pronounsImage.Width / 2);
-                int tempPronounsY = PronounsY - (int)(pronounsImage.Height / 2);
+            if (nameImg != null)
+                image.Composite(nameImg,
+                    config.NameX - (int)(nameImg.Width / 2),
+                    config.NameY - (int)(nameImg.Height / 2),
+                    CompositeOperator.Atop);
 
-                image.Composite(pronounsImage, tempPronounsX, tempPronounsY, CompositeOperator.Atop);
-            }
+            if (pronounsImg != null)
+                image.Composite(pronounsImg,
+                    config.PronounsX - (int)(pronounsImg.Width / 2),
+                    config.PronounsY - (int)(pronounsImg.Height / 2),
+                    CompositeOperator.Atop);
 
-            // Draw a box to illustrate the bounds of NameX and NameY and PronounsX and PronounsY including their sizes
             image.Write(outPath);
         }
 
-        private static MagickImage FindFontSize(string fontFamily, string text, int desiredWidth, int desiredHeight, MagickColor color)
+        private void CompositeMetallicSmoothnessMask(string templateMask, string metallicPath, string outPath)
         {
-            // Use imagemagick to find the font size that fits the text in the desired width and height
-            // Using the equivalent of the following command:
-            // convert -background none -fill white -font fontPath -pointsize 1 -size 100x100 caption:"text" -trim -format "%[fx:round(h)]" info:
-            // Ensure the text doesn't go onto a new line
-            MagickImage image = new MagickImage($"label:{text}", new MagickReadSettings
+            using MagickImage baseImage = new MagickImage(metallicPath);
+            using MagickImage maskImage = new MagickImage(templateMask);
+            maskImage.Flip();   // God literally why do I need to do this
+            var separated = maskImage.Separate().ToList();
+            using var output = new MagickImageCollection { baseImage, separated[1], separated[2], separated[3] }.Combine();
+            output.Write(outPath);
+        }
+
+        private static void SetStreamingMipmaps(string assetPath, bool sRGB = true)
+        {
+            var importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
+            if (importer == null) { Debug.LogError($"Failed to import texture at {assetPath}"); return; }
+            importer.streamingMipmaps = true;
+            if (!sRGB) importer.sRGBTexture = false;
+            importer.SaveAndReimport();
+        }
+
+        private static bool TryLoadMaterial(string assetPath, out Material mat)
+        {
+            mat = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
+            if (mat == null) Debug.LogError($"Failed to find material at {assetPath}");
+            return mat != null;
+        }
+
+        private static MagickImage FindFontSize(string fontFamily, string text, int w, int h, MagickColor color)
+        {
+            var image = new MagickImage($"label:{text}", new MagickReadSettings
             {
                 BackgroundColor = MagickColors.None,
-                FillColor = color,
-                Font = fontFamily,
-                Width = desiredWidth,
-                Height = desiredHeight,
+                FillColor       = color,
+                Font            = fontFamily,
+                Width           = w,
+                Height          = h,
             });
-
             image.Trim();
             return image;
         }
