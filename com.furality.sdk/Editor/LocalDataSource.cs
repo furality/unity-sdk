@@ -103,10 +103,10 @@ namespace Furality.SDK.Editor
                 Category = "Tools",
                 ConventionId = "furality09",
                 Dependencies = new List<Package>(),
-                Version = new Version(2, 0, 0),
+                Version = new Version(2, 0, 1),
                 AttendanceLevel = AttendanceLevel.none,
                 IsPublic = true,
-                FallbackUrl = "https://github.com/furality/unity-sdk/releases/download/2.0.0/com.furality.badgemaker-2.0.0.unitypackage"
+                FallbackUrl = "https://github.com/furality/unity-sdk/releases/download/2.0.1/com.furality.badgemaker-2.0.1.unitypackage"
             },
         };
         

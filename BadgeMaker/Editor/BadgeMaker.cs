@@ -67,7 +67,8 @@ namespace Furality.Editor.Tools.BadgeMaker
                     ["Attendee"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffffff"), new MagickColor("#dfff99")),
                     ["First Class"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffffff"), new MagickColor("#ffa8ff")),
                     ["Sponsor"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffffff"), new MagickColor("#ffff96")),
-                    ["Team"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffffff"), new MagickColor("#ffffff")),
+                    ["Game Changer"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffffff"), new MagickColor("#cef48b")),
+                    ["Team"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffffff"), new MagickColor("#8bf4f4")),
                 }
             ),
         };
