@@ -14,46 +14,60 @@ namespace Furality.Editor.Tools.BadgeMaker
 {
     public class BadgeMaker : EditorWindow
     {
+        private const string CurrentConvention = "Furality Ultra";
+        
         private static readonly Dictionary<string, ConventionConfig> Conventions = new()
         {
             ["Furality Sylva"] = new ConventionConfig(
                 nameX: 2048, nameY: 1304, nameW: 3208, nameH: 855,
                 pronX: 2048, pronY: 1717, pronW: 1554, pronH: 257,
-                titleBean:    "f6-name.bean",     titleFont:    "Rowdies-Light.ttf",
+                titleBean: "f6-name.bean", titleFont: "Rowdies-Light.ttf",
                 pronounsBean: "f6-pronouns.bean", pronounsFont: "Rowdies-Regular.ttf",
-                pronounsMatchTextColor: false,
                 pipeline: ConventionConfig.PipelineType.Sylva
             ),
 
             ["Furality Umbra"] = new ConventionConfig(
                 nameX: 2048, nameY: 1504, nameW: 3208, nameH: 855,
                 pronX: 2048, pronY: 1917, pronW: 1554, pronH: 257,
-                titleBean:    "f7-font.bean", titleFont:    "Roboto-BoldItalic.ttf",
+                titleBean: "f7-font.bean", titleFont: "Roboto-BoldItalic.ttf",
                 pronounsBean: "f7-font.bean", pronounsFont: "Roboto-BoldItalic.ttf",
-                pronounsMatchTextColor: true,
                 pipeline: ConventionConfig.PipelineType.Umbra,
                 tierColors: new()
                 {
-                    ["Attendee"]    = new MagickColor("#37ff79"),
-                    ["First Class"] = new MagickColor("#fe3fff"),
-                    ["Sponsor"]     = new MagickColor("#ffce49"),
+                    ["Attendee"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#37ff79"), new MagickColor("#37ff79")),
+                    ["First Class"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#fe3fff"), new MagickColor("#fe3fff")),
+                    ["Sponsor"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffce49"), new MagickColor("#ffce49")),
                 }
             ),
 
             ["Furality Somna"] = new ConventionConfig(
                 nameX: 375, nameY: 700, nameW: 610, nameH: 150,
                 pronX: 450, pronY: 810, pronW: 449, pronH: 75,
-                titleBean:    "f8-font.bean", titleFont:    "Fraunces_72pt-SemiBold.ttf",
+                titleBean: "f8-font.bean", titleFont: "Fraunces_72pt-SemiBold.ttf",
                 pronounsBean: "f8-font.bean", pronounsFont: "Fraunces_72pt-SemiBold.ttf",
-                pronounsMatchTextColor: false,
                 pipeline: ConventionConfig.PipelineType.Somna,
                 tierColors: new()
                 {
-                    ["Attendee"]    = new MagickColor("#ffeead"),
-                    ["First Class"] = new MagickColor("#ffeead"),
-                    ["Sponsor"]     = new MagickColor("#ffeead"),
-                    ["Dream Maker"] = new MagickColor("#ffeead"),
-                    ["Team"]        = new MagickColor("#ffeead"),
+                    ["Attendee"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffeead"), new MagickColor("#ffffff")),
+                    ["First Class"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffeead"), new MagickColor("#ffffff")),
+                    ["Sponsor"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffeead"), new MagickColor("#ffffff")),
+                    ["Dream Maker"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffeead"), new MagickColor("#ffffff")),
+                    ["Team"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffeead"), new MagickColor("#ffffff")),
+                }
+            ),
+
+            ["Furality Ultra"] = new ConventionConfig(
+                nameX: 490, nameY: 308, nameW: 830, nameH: 200,
+                pronX: 560, pronY: 590, pronW: 700, pronH: 150,
+                titleBean: "f9-font.bean", titleFont: "BRLNSR.TTF",
+                pronounsBean: "f9-font.bean", pronounsFont: "BRLNSR.TTF",
+                pipeline: ConventionConfig.PipelineType.Ultra,
+                tierColors: new()
+                {
+                    ["Attendee"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffffff"), new MagickColor("#dfff99")),
+                    ["First Class"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffffff"), new MagickColor("#ffa8ff")),
+                    ["Sponsor"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffffff"), new MagickColor("#ffff96")),
+                    ["Team"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffffff"), new MagickColor("#ffffff")),
                 }
             ),
         };
@@ -75,8 +89,9 @@ namespace Furality.Editor.Tools.BadgeMaker
         private string _pronouns  = "Title/Pronouns";
         private int _badgeTier       = -1;
         private int _badgeConvention = -1;
+        private int _lastSelectedConvention = -1;
         private bool _applyToMaterial = true;
-        private List<string> _tierNames       = new();
+        private Dictionary<string, List<string>> _tierNames       = new();
         private List<string> _conventionNames = new();
         private ConventionConfig _activeConfig;
 
@@ -86,9 +101,11 @@ namespace Furality.Editor.Tools.BadgeMaker
             {
                 var tiers = AssetDatabase.GetSubFolders(Path.Combine(conventionFolder, "Avatar Assets/Badges"));
                 if (tiers.Length == 0) continue;
-                _conventionNames.Add(conventionFolder.Split('/')[^1]);
-                _tierNames.AddRange(tiers.Select(t => t.Split('/')[^1]));
+                var conventionName = conventionFolder.Split('/')[^1];
+                _tierNames.Add(conventionName, tiers.Select(t => t.Split('/')[^1]).ToList());
             }
+            
+            _conventionNames = _tierNames.Keys.ToList();
         }
 
         [MenuItem("Furality/Show Badge Maker")]
@@ -149,10 +166,7 @@ namespace Furality.Editor.Tools.BadgeMaker
             GUILayout.EndHorizontal();
             GUILayout.Space(10);
 
-            if (_badgeTier == -1)       _badgeTier       = _tierNames.Count - 1;
-            if (_badgeConvention == -1) _badgeConvention = _conventionNames.Count - 1;
-
-            if (_tierNames.Count == 0 || _conventionNames.Count == 0)
+            if (_tierNames.Count == 0 || _tierNames.Values.All(x => x.Count == 0))
             {
                 EditorGUILayout.HelpBox(
                     "No badges found! Please download badges from the downloads tab.",
@@ -160,9 +174,27 @@ namespace Furality.Editor.Tools.BadgeMaker
                 return;
             }
 
+            if (_badgeConvention == -1)
+            {
+                _badgeConvention = _conventionNames.Contains(CurrentConvention)
+                    ? _conventionNames.IndexOf(CurrentConvention)
+                    : _conventionNames.Count - 1;
+            }
+            
+            // Allows us to order and figure out the most significant badge
+            var potentialTiers = Conventions[_conventionNames[_badgeConvention]].TierColors.Keys.ToList();
+            var actualTiers = _tierNames[_conventionNames[_badgeConvention]].ToList();
+
+            // If we haven't initialized yet, or our convention has changed, we should recalculate this
+            if (_badgeTier == -1 || _lastSelectedConvention != _badgeConvention)
+            {
+                _badgeTier = actualTiers.IndexOf(potentialTiers.Where(actualTiers.Contains).Last());
+                _lastSelectedConvention = _badgeConvention;
+            }
+
             _badgeName       = EditorGUILayout.TextField("Badge Name", _badgeName);
             _pronouns        = EditorGUILayout.TextField("Title",      _pronouns);
-            _badgeTier       = EditorGUILayout.Popup("Badge Type",  _badgeTier,       _tierNames.ToArray());
+            _badgeTier       = EditorGUILayout.Popup("Badge Type", _badgeTier, actualTiers.ToArray());
             _badgeConvention = EditorGUILayout.Popup("Convention",  _badgeConvention, _conventionNames.ToArray());
             _applyToMaterial = EditorGUILayout.Toggle("Auto-Apply to Base Material", _applyToMaterial);
 
@@ -182,7 +214,7 @@ namespace Furality.Editor.Tools.BadgeMaker
         private void ConstructBadge()
         {
             var convention   = _conventionNames[_badgeConvention];
-            var tier         = _tierNames[_badgeTier];
+            var tier         = _tierNames[convention][_badgeTier];
             var tierNoSpaces = Regex.Replace(tier, @"\s+", "");
             var safeFileName = Regex.Replace(_badgeName, @"[<>:""/\\|?*]", "_");
 
@@ -203,7 +235,8 @@ namespace Furality.Editor.Tools.BadgeMaker
             _activeConfig = config;
 
             var textColor     = config.GetTextColor(tier);
-            var pronounsColor = config.PronounsMatchTextColor ? textColor : MagickColors.White;
+            var titleColor = textColor.Item1;
+            var pronounsColor = textColor.Item2;
             var badgeFolder   = Utils.BadgeFolderRoot(convention, tier);
 
             EditorUtility.DisplayProgressBar("Creating Badge", "Loading fonts...", 0.1f);
@@ -212,13 +245,16 @@ namespace Furality.Editor.Tools.BadgeMaker
             switch (config.Pipeline)
             {
                 case ConventionConfig.PipelineType.Sylva:
-                    RunSylvaPipeline(config, badgeFolder, tier, safeFileName, textColor, pronounsColor);
+                    RunSylvaPipeline(config, badgeFolder, tier, safeFileName, titleColor, pronounsColor);
                     break;
                 case ConventionConfig.PipelineType.Umbra:
-                    RunUmbraPipeline(config, badgeFolder, tierNoSpaces, safeFileName, textColor, pronounsColor);
+                    RunUmbraPipeline(config, badgeFolder, tierNoSpaces, safeFileName, titleColor, pronounsColor);
                     break;
                 case ConventionConfig.PipelineType.Somna:
-                    RunSomnaPipeline(config, badgeFolder, tierNoSpaces, safeFileName, textColor, pronounsColor);
+                    RunSomnaPipeline(config, badgeFolder, tierNoSpaces, safeFileName, titleColor, pronounsColor);
+                    break;
+                case ConventionConfig.PipelineType.Ultra:
+                    RunUltraPipeline(config, badgeFolder, tierNoSpaces, safeFileName, titleColor, pronounsColor);
                     break;
             }
 
@@ -257,6 +293,47 @@ namespace Furality.Editor.Tools.BadgeMaker
             if (!_applyToMaterial) return;
             EditorUtility.DisplayProgressBar("Creating Badge", "Applying to material...", 0.9f);
             var matPath = Path.Combine(badgeFolder, "Material", $"{tier}.mat");
+            if (TryLoadMaterial(matPath, out var mat))
+            {
+                mat.SetTexture(MainTex,     AssetDatabase.LoadAssetAtPath<Texture2D>(outBase));
+                mat.SetTexture(EffectMask,  AssetDatabase.LoadAssetAtPath<Texture2D>(outBase));
+                mat.SetTexture(EmissionMap, AssetDatabase.LoadAssetAtPath<Texture2D>(outEmission));
+                AssetDatabase.SaveAssets();
+            }
+        }
+        
+        // Ultra only needs base texture (thank god)
+        private void RunUltraPipeline(ConventionConfig config, string badgeFolder,
+            string tier, string safeFileName,
+            MagickColor textColor, MagickColor pronounsColor)
+        {
+            var texDir       = Path.Combine(badgeFolder, "Textures");
+            var inputBase    = Path.Combine(texDir, $"Badge{tier}_DIF.png");
+            var inputEmission = Path.Combine(texDir, $"Badge{tier}_EMI.png");
+
+            var outDir      = Path.Combine(texDir, "Custom");
+            if (!Directory.Exists(outDir)) Directory.CreateDirectory(outDir);
+            var outBase     = Path.Combine(outDir, $"CUSTOM_{safeFileName}.png");
+            var outEmission = Path.Combine(outDir, $"CUSTOM_{safeFileName}_EMI.png");
+
+            EditorUtility.DisplayProgressBar("Creating Badge", "Rendering name text...", 0.25f);
+            var nameImg     = MakeTextImage(config.TitleFont,   _badgeName, config.NameW,     config.NameH,     textColor);
+            EditorUtility.DisplayProgressBar("Creating Badge", "Rendering title text...", 0.35f);
+            var pronounsImg = MakeTextImage(config.PronounsFont, _pronouns, config.PronounsW, config.PronounsH, pronounsColor);
+
+            EditorUtility.DisplayProgressBar("Creating Badge", "Compositing base texture...", 0.5f);
+            CreateBadge(config, inputBase, nameImg, pronounsImg, outBase);
+            EditorUtility.DisplayProgressBar("Creating Badge", "Compositing emission texture...", 0.65f);
+            CreateBadge(config, inputEmission, nameImg, pronounsImg, outEmission);
+
+            AssetDatabase.Refresh();
+            EditorUtility.DisplayProgressBar("Creating Badge", "Importing textures...", 0.8f);
+            SetStreamingMipmaps(outBase);
+            SetStreamingMipmaps(outEmission);
+
+            if (!_applyToMaterial) return;
+            EditorUtility.DisplayProgressBar("Creating Badge", "Applying to material...", 0.9f);
+            var matPath = Path.Combine(badgeFolder, "Materials", $"Badge{tier}.mat");
             if (TryLoadMaterial(matPath, out var mat))
             {
                 mat.SetTexture(MainTex,     AssetDatabase.LoadAssetAtPath<Texture2D>(outBase));

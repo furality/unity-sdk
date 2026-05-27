@@ -93,6 +93,21 @@ namespace Furality.SDK.Editor
                 IsPublic = true,
                 FallbackUrl = "https://github.com/furality/unity-sdk/releases/download/1.2.0/com.furality.badgemaker-1.2.0.unitypackage"
             },
+            
+            new FuralityPackage()
+            {
+                Id = "com.furality.badgemaker",
+                Name = "Badge Maker",
+                Description = "Allows you to customise the text displayed on badges!",
+                ImageUrl = "https://media.furality.online/files/web/merch/all-badges.png",
+                Category = "Tools",
+                ConventionId = "furality09",
+                Dependencies = new List<Package>(),
+                Version = new Version(2, 0, 0),
+                AttendanceLevel = AttendanceLevel.none,
+                IsPublic = true,
+                FallbackUrl = "https://github.com/furality/unity-sdk/releases/download/2.0.0/com.furality.badgemaker-2.0.0.unitypackage"
+            },
         };
         
         public FuralityPackage FindPackage(string id, Version version) => _packages.Find(x => x.Id == id && x.Version == version);

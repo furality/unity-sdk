@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ImageMagick;
 
 namespace Furality.Editor.Tools.BadgeMaker
 {
     internal class ConventionConfig
     {
-        public enum PipelineType { Sylva, Umbra, Somna }
+        public enum PipelineType { Sylva, Umbra, Somna, Ultra }
 
         public readonly int NameX, NameY, NameW, NameH;
         public readonly int PronounsX, PronounsY, PronounsW, PronounsH;
@@ -13,9 +14,7 @@ namespace Furality.Editor.Tools.BadgeMaker
         public readonly string TitleBean,   TitleFont;
         public readonly string PronounsBean, PronounsFont;
 
-        public readonly bool PronounsMatchTextColor;
-
-        public readonly Dictionary<string, MagickColor> TierColors;
+        public readonly Dictionary<string, Tuple<MagickColor, MagickColor>> TierColors;
 
         public readonly PipelineType Pipeline;
 
@@ -24,20 +23,18 @@ namespace Furality.Editor.Tools.BadgeMaker
             int pronX,  int pronY,  int pronW,  int pronH,
             string titleBean,    string titleFont,
             string pronounsBean, string pronounsFont,
-            bool pronounsMatchTextColor,
             PipelineType pipeline,
-            Dictionary<string, MagickColor> tierColors = null)
+            Dictionary<string, Tuple<MagickColor, MagickColor>> tierColors = null)
         {
             NameX = nameX; NameY = nameY; NameW = nameW; NameH = nameH;
             PronounsX = pronX; PronounsY = pronY; PronounsW = pronW; PronounsH = pronH;
             TitleBean   = titleBean;    TitleFont   = titleFont;
             PronounsBean = pronounsBean; PronounsFont = pronounsFont;
-            PronounsMatchTextColor = pronounsMatchTextColor;
             Pipeline   = pipeline;
             TierColors = tierColors;
         }
 
-        public MagickColor GetTextColor(string tier) =>
-            TierColors != null && TierColors.TryGetValue(tier, out var c) ? c : MagickColors.White;
+        public Tuple<MagickColor, MagickColor> GetTextColor(string tier) =>
+            TierColors != null && TierColors.TryGetValue(tier, out var c) ? c : new Tuple<MagickColor, MagickColor>(MagickColors.White, MagickColors.White);
     }
 }
