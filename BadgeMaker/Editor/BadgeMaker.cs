@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using ImageMagick;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using UnityEditor;
@@ -34,9 +35,9 @@ namespace Furality.Editor.Tools.BadgeMaker
                 pipeline: ConventionConfig.PipelineType.Umbra,
                 tierColors: new()
                 {
-                    ["Attendee"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#37ff79"), new MagickColor("#37ff79")),
-                    ["First Class"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#fe3fff"), new MagickColor("#fe3fff")),
-                    ["Sponsor"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffce49"), new MagickColor("#ffce49")),
+                    ["Attendee"]    = ("#37ff79", "#37ff79"),
+                    ["First Class"] = ("#fe3fff", "#fe3fff"),
+                    ["Sponsor"]     = ("#ffce49", "#ffce49"),
                 }
             ),
 
@@ -48,11 +49,11 @@ namespace Furality.Editor.Tools.BadgeMaker
                 pipeline: ConventionConfig.PipelineType.Somna,
                 tierColors: new()
                 {
-                    ["Attendee"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffeead"), new MagickColor("#ffffff")),
-                    ["First Class"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffeead"), new MagickColor("#ffffff")),
-                    ["Sponsor"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffeead"), new MagickColor("#ffffff")),
-                    ["Dream Maker"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffeead"), new MagickColor("#ffffff")),
-                    ["Team"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffeead"), new MagickColor("#ffffff")),
+                    ["Attendee"]    = ("#ffeead", "#ffffff"),
+                    ["First Class"] = ("#ffeead", "#ffffff"),
+                    ["Sponsor"]     = ("#ffeead", "#ffffff"),
+                    ["Dream Maker"] = ("#ffeead", "#ffffff"),
+                    ["Team"]        = ("#ffeead", "#ffffff"),
                 }
             ),
 
@@ -64,11 +65,11 @@ namespace Furality.Editor.Tools.BadgeMaker
                 pipeline: ConventionConfig.PipelineType.Ultra,
                 tierColors: new()
                 {
-                    ["Attendee"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffffff"), new MagickColor("#dfff99")),
-                    ["First Class"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffffff"), new MagickColor("#ffa8ff")),
-                    ["Sponsor"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffffff"), new MagickColor("#ffff96")),
-                    ["Game Changer"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffffff"), new MagickColor("#cef48b")),
-                    ["Team"] = new Tuple<MagickColor, MagickColor>(new MagickColor("#ffffff"), new MagickColor("#8bf4f4")),
+                    ["Attendee"]     = ("#ffffff", "#dfff99"),
+                    ["First Class"]  = ("#ffffff", "#ffa8ff"),
+                    ["Sponsor"]      = ("#ffffff", "#ffff96"),
+                    ["Game Changer"] = ("#ffffff", "#cef48b"),
+                    ["Team"]         = ("#ffffff", "#8bf4f4"),
                 }
             ),
         };
@@ -235,10 +236,12 @@ namespace Furality.Editor.Tools.BadgeMaker
 
             _activeConfig = config;
 
-            var textColor     = config.GetTextColor(tier);
-            var titleColor = textColor.Item1;
-            var pronounsColor = textColor.Item2;
-            var badgeFolder   = Utils.BadgeFolderRoot(convention, tier);
+            // MagickColor constructed here, at generate time, not at class load time
+            var (titleHex, pronounsHex) = config.GetTextColorHex(tier);
+            var titleColor    = new MagickColor(titleHex);
+            var pronounsColor = new MagickColor(pronounsHex);
+
+            var badgeFolder = Utils.BadgeFolderRoot(convention, tier);
 
             EditorUtility.DisplayProgressBar("Creating Badge", "Loading fonts...", 0.1f);
             LoadFonts(config);
